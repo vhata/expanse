@@ -90,7 +90,13 @@ def list(ctx) -> None:
 @click.pass_context
 def show(ctx, name: str) -> None:
     "Show expansion"
-    pass
+    with ctx.obj["EXPANSION_FILE"].open() as f:
+        exps = json.load(f)
+    if not name in exps["expansions"]:
+        click.echo(f"No such expansion: {name}", err=True)
+        ctx.abort()
+    click.echo(click.style(f"'{name}'", fg="green"))
+    print(exps["expansions"][name])
 
 
 if __name__ == "__main__":
