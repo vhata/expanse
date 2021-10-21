@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import click
+import os
+from pathlib import Path
 
 
 def abort_if_false(ctx, param, value):
@@ -9,13 +11,23 @@ def abort_if_false(ctx, param, value):
 
 
 @click.group()
-def cli():
-    pass
+@click.option(
+    "-f",
+    "--expansion-file",
+    type=click.Path(path_type=Path),
+    default=lambda: Path(os.environ.get("HOME", "/")) / Path(".expanserc"),
+)
+@click.pass_context
+def cli(ctx, expansion_file):
+    ctx.ensure_object(dict)
+
+    ctx.obj["EXPANSION_FILE"] = expansion_file
 
 
 @cli.command()
 @click.option("-n", "--name", prompt=True)
-def add(name):
+@click.pass_context
+def add(ctx, name):
     "Add expansion"
     pass
 
@@ -29,23 +41,26 @@ def add(name):
     expose_value=False,
     prompt="Really delete expansion?",
 )
-def delete(name):
+@click.pass_context
+def delete(ctx, name):
     "Remove expansion"
     pass
 
 
 @cli.command()
-def list():
+@click.pass_context
+def list(ctx):
     "List expansions"
     pass
 
 
 @cli.command()
 @click.option("-n", "--name", prompt=True)
-def show(name):
+@click.pass_context
+def show(ctx, name):
     "Show expansion"
     pass
 
 
 if __name__ == "__main__":
-    cli()
+    cli(obj={})
