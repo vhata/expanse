@@ -1,13 +1,40 @@
 #!/usr/bin/env python
 
+from json.decoder import JSONDecodeError
 import click
+import json
 import os
 from pathlib import Path
+
+from click.termui import confirm
 
 
 def abort_if_false(ctx, param, value):
     if not value:
         ctx.abort()
+
+
+def ensure_expfile(expfile: Path) -> bool:
+    # If the file exists, load it and check (roughly) for the correct format
+    if expfile.exists():
+        try:
+            with expfile.open() as f:
+                json.load(f)["expansions"]
+        except (JSONDecodeError, KeyError):
+            click.echo(f"Expansion file {expfile} is an invalid format", err=True)
+            return False
+        return True
+
+    # Otherwise create an empty file
+    if not click.confirm("Expansion file does not exist. Create?"):
+        return False
+    try:
+        with expfile.open("w") as f:
+            json.dump({"expansions": {}}, f)
+    except OSError:
+        click.echo(f"Could not write to {expfile}.", err=True)
+        return False
+    return True
 
 
 @click.group()
@@ -20,8 +47,9 @@ def abort_if_false(ctx, param, value):
 @click.pass_context
 def cli(ctx, expansion_file):
     ctx.ensure_object(dict)
-
     ctx.obj["EXPANSION_FILE"] = expansion_file
+    if not ensure_expfile(expansion_file):
+        ctx.abort()
 
 
 @cli.command()
