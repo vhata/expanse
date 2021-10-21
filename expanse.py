@@ -79,7 +79,10 @@ def delete(ctx, name: str) -> None:
 @click.pass_context
 def list(ctx) -> None:
     "List expansions"
-    pass
+    with ctx.obj["EXPANSION_FILE"].open() as f:
+        exps = json.load(f)
+    for z in exps["expansions"]:
+        print(z)
 
 
 @cli.command()
