@@ -72,7 +72,19 @@ def add(ctx, name: str) -> None:
 @click.pass_context
 def delete(ctx, name: str) -> None:
     "Remove expansion"
-    pass
+    expfile = ctx.obj["EXPANSION_FILE"]
+    with expfile.open() as f:
+        exps = json.load(f)
+    if not name in exps["expansions"]:
+        click.echo(f"No such expansion: {name}", err=True)
+        ctx.abort()
+    del exps["expansions"][name]
+    try:
+        with expfile.open("w") as f:
+            json.dump(exps, f)
+    except OSError:
+        click.echo(f"Could not write to {expfile}.", err=True)
+        ctx.abort()
 
 
 @cli.command()
