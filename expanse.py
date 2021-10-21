@@ -45,7 +45,7 @@ def ensure_expfile(expfile: Path) -> bool:
     default=lambda: Path(os.environ.get("HOME", "/")) / Path(".expanserc"),
 )
 @click.pass_context
-def cli(ctx, expansion_file):
+def cli(ctx, expansion_file: Path) -> None:
     ctx.ensure_object(dict)
     ctx.obj["EXPANSION_FILE"] = expansion_file
     if not ensure_expfile(expansion_file):
@@ -55,7 +55,7 @@ def cli(ctx, expansion_file):
 @cli.command()
 @click.option("-n", "--name", prompt=True)
 @click.pass_context
-def add(ctx, name):
+def add(ctx, name: str) -> None:
     "Add expansion"
     pass
 
@@ -70,14 +70,14 @@ def add(ctx, name):
     prompt="Really delete expansion?",
 )
 @click.pass_context
-def delete(ctx, name):
+def delete(ctx, name: str) -> None:
     "Remove expansion"
     pass
 
 
 @cli.command()
 @click.pass_context
-def list(ctx):
+def list(ctx) -> None:
     "List expansions"
     pass
 
@@ -85,7 +85,7 @@ def list(ctx):
 @cli.command()
 @click.option("-n", "--name", prompt=True)
 @click.pass_context
-def show(ctx, name):
+def show(ctx, name: str) -> None:
     "Show expansion"
     pass
 
