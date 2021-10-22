@@ -4,6 +4,7 @@ from json.decoder import JSONDecodeError
 import click
 import json
 import os
+import sys
 from pathlib import Path
 
 from click.termui import confirm
@@ -54,10 +55,27 @@ def cli(ctx, expansion_file: Path) -> None:
 
 @cli.command()
 @click.option("-n", "--name", prompt=True)
+@click.option("-e", "--expansion")
 @click.pass_context
-def add(ctx, name: str) -> None:
+def add(ctx, name: str, expansion: str) -> None:
     "Add expansion"
-    pass
+    expfile = ctx.obj["EXPANSION_FILE"]
+    with expfile.open() as f:
+        exps = json.load(f)
+    if name in exps["expansions"] and not click.confirm(
+        f"Expansion {name} already exists. Overwrite?"
+    ):
+        ctx.abort()
+    if not expansion:
+        click.echo("Enter expansion. Terminate with ctrl-D:")
+        expansion = "".join(sys.stdin.readlines()).strip()
+    exps["expansions"][name] = expansion
+    try:
+        with expfile.open("w") as f:
+            json.dump(exps, f)
+    except OSError:
+        click.echo(f"Could not write to {expfile}.", err=True)
+        ctx.abort()
 
 
 @cli.command()
