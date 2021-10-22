@@ -55,6 +55,29 @@ def cli(ctx, expansion_file: Path) -> None:
 
 @cli.command()
 @click.option("-n", "--name", prompt=True)
+@click.pass_context
+def edit(ctx, name: str) -> None:
+    "Edit expansion"
+    expfile = ctx.obj["EXPANSION_FILE"]
+    with expfile.open() as f:
+        exps = json.load(f)
+    if not name in exps["expansions"]:
+        click.echo(f"No such expansion: {name}, creating new one")
+        expansion = ''
+    else:
+        expansion = exps['expansions'][name]
+    expansion = click.edit(expansion)
+    exps["expansions"][name] = expansion
+    try:
+        with expfile.open("w") as f:
+            json.dump(exps, f)
+    except OSError:
+        click.echo(f"Could not write to {expfile}.", err=True)
+        ctx.abort()
+
+
+@cli.command()
+@click.option("-n", "--name", prompt=True)
 @click.option("-e", "--expansion")
 @click.pass_context
 def add(ctx, name: str, expansion: str) -> None:
