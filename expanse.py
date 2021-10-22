@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-from json.decoder import JSONDecodeError
-import click
 import json
 import os
 import sys
+from json.decoder import JSONDecodeError
 from pathlib import Path
 
+import click
 from click.termui import confirm
 
 
