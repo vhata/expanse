@@ -4,7 +4,7 @@ import json
 import os
 import sys
 from json.decoder import JSONDecodeError
-from pathlib import Path
+from pathlib import Path, PosixPath
 
 import click
 from click.termui import confirm
@@ -38,11 +38,13 @@ def ensure_expfile(expfile: Path) -> bool:
     return True
 
 
+# we have to specify PosixPath explicitly because things break in the test suite
+# otherwise due to https://bugs.python.org/issue24132
 @click.group()
 @click.option(
     "-f",
     "--expansion-file",
-    type=click.Path(path_type=Path),
+    type=click.Path(path_type=PosixPath),
     default=lambda: Path(os.environ.get("HOME", "/")) / Path(".expanserc"),
 )
 @click.pass_context
@@ -63,9 +65,9 @@ def edit(ctx, name: str) -> None:
         exps = json.load(f)
     if not name in exps["expansions"]:
         click.echo(f"No such expansion: {name}, creating new one")
-        expansion = ''
+        expansion = ""
     else:
-        expansion = exps['expansions'][name]
+        expansion = exps["expansions"][name]
     expansion = click.edit(expansion)
     exps["expansions"][name] = expansion
     try:
