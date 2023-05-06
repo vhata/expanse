@@ -166,5 +166,16 @@ def get(ctx, names: str) -> None:
             print(exps["expansions"].get(name))
 
 
+@cli.command()
+@click.pass_context
+def dump(ctx) -> None:
+    "Dump expansion file"
+    with ctx.obj["EXPANSION_FILE"].open() as f:
+        exps = json.load(f)
+    for name, expansion in exps["expansions"].items():
+        expansion = expansion.replace("\n", "↵")
+        print(f"{name}\n{expansion}")
+
+
 if __name__ == "__main__":
     cli(obj={})
