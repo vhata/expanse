@@ -154,5 +154,17 @@ def show(ctx, name: str) -> None:
     print(exps["expansions"][name])
 
 
+@cli.command()
+@click.pass_context
+@click.argument("names", nargs=-1)
+def get(ctx, names: str) -> None:
+    "Get expansion contents"
+    with ctx.obj["EXPANSION_FILE"].open() as f:
+        exps = json.load(f)
+    for name in names:
+        if name in exps["expansions"]:
+            print(exps["expansions"].get(name))
+
+
 if __name__ == "__main__":
     cli(obj={})
