@@ -5,6 +5,7 @@ from pathlib import Path
 from pynput import keyboard
 import tkinter as tk
 from tkinter import ttk, messagebox
+import threading
 
 from .core import get_expfile, load_expansions, save_expansions
 
@@ -147,34 +148,37 @@ class ExpanseDaemon:
         listener = keyboard.Listener(on_press=on_press, on_release=on_release)
         listener.start()
 
+    def show_expansion_popup(self):
+        popup = tk.Toplevel(self.root)
+        popup.title("Select Expansion")
+        popup.geometry("200x300")
+
+        listbox = tk.Listbox(popup)
+        for name in self.expansions["expansions"]:
+            listbox.insert(tk.END, name)
+        listbox.pack(fill=tk.BOTH, expand=True)
+
+        def on_select(event):
+            selection = listbox.curselection()
+            if selection:
+                name = listbox.get(selection[0])
+                content = self.expansions["expansions"][name]
+                # Copy to clipboard
+                self.root.clipboard_clear()
+                self.root.clipboard_append(content)
+                popup.destroy()
+
+        listbox.bind("<<ListboxSelect>>", on_select)
+
     def run(self):
         def on_activate():
-            # Show a popup with available expansions
-            popup = tk.Toplevel(self.root)
-            popup.title("Select Expansion")
-            popup.geometry("200x300")
-
-            listbox = tk.Listbox(popup)
-            for name in self.expansions["expansions"]:
-                listbox.insert(tk.END, name)
-            listbox.pack(fill=tk.BOTH, expand=True)
-
-            def on_select(event):
-                selection = listbox.curselection()
-                if selection:
-                    name = listbox.get(selection[0])
-                    content = self.expansions["expansions"][name]
-                    # Copy to clipboard
-                    self.root.clipboard_clear()
-                    self.root.clipboard_append(content)
-                    popup.destroy()
-
-            listbox.bind("<<ListboxSelect>>", on_select)
+            # Schedule the GUI operation to run in the main thread
+            self.root.after(0, self.show_expansion_popup)
 
         def for_canonical(f):
             return lambda k: f(listener.canonical(k))
 
-        hotkey = keyboard.HotKey(keyboard.HotKey.parse("<ctrl>+<alt>+e"), on_activate)
+        hotkey = keyboard.HotKey(keyboard.HotKey.parse("<cmd>+<shift>+u"), on_activate)
 
         with keyboard.Listener(
             on_press=for_canonical(hotkey.press),

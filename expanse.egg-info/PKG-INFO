@@ -1,0 +1,97 @@
+Metadata-Version: 2.4
+Name: expanse
+Version: 0.1.0
+Summary: A text snippet manager with global keyboard shortcuts
+Home-page: https://github.com/yourusername/expanse
+Author: Your Name
+Author-email: your.email@example.com
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
+Requires-Dist: click
+Requires-Dist: pynput
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# Expanse
+
+A text snippet manager with global keyboard shortcuts for macOS.
+
+## Features
+
+- Store and manage text snippets
+- Two interfaces:
+  - Simple command-line interface (CLI)
+  - GUI with global keyboard shortcuts (Ctrl+Alt+E by default)
+- Snippets are stored in `~/.expanserc`
+
+## Installation
+
+```bash
+# Install the package
+pip install .
+
+# Start the daemon
+expanse-daemon
+```
+
+The daemon will run in the background and can be triggered with Ctrl+Alt+E.
+
+## Usage
+
+### GUI Mode (with keyboard shortcuts)
+
+Run `expanse-gui` to start the GUI where you can:
+- Add new snippets
+- Edit existing snippets
+- Delete snippets
+- Set custom keyboard shortcuts
+- Access snippets via global keyboard shortcut (Ctrl+Alt+E by default)
+
+### Command Line Mode
+
+The `expanse` command provides the following subcommands:
+
+```bash
+# Add a new snippet
+expanse add -n test -e "Some long text you want to expand to"
+
+# Get a snippet's content
+expanse get test
+
+# List all snippets
+expanse list
+
+# Edit a snippet
+expanse edit -n test
+
+# Show a snippet
+expanse show test
+
+# Delete a snippet
+expanse delete -n test
+
+# Dump all snippets
+expanse dump
+```
+
+## Development
+
+```bash
+# Install in development mode
+pip install -e .
+
+# Run tests
+pytest
+```
