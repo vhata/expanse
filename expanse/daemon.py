@@ -2,191 +2,129 @@
 
 import sys
 from pathlib import Path
-from pynput import keyboard
-import tkinter as tk
-from tkinter import ttk, messagebox
-import threading
+import rumps
+import pyperclip
 
 from .core import get_expfile, load_expansions, save_expansions
 
 
-class ExpanseDaemon:
+class ExpanseDaemon(rumps.App):
     def __init__(self):
+        super(ExpanseDaemon, self).__init__("Expanse")
         self.expfile = get_expfile()
         self.expansions = load_expansions(self.expfile)
-        self.root = None
-        self.listener = None
-        self.hotkey = None
-        self.setup_gui()
+        self.menu = self.build_menu()
+
+    def build_menu(self):
+        menu = []
+        for name in self.expansions["expansions"]:
+            menu.append(rumps.MenuItem(name, callback=self.copy_expansion))
+        menu.append(None)  # Separator
+        menu.append(rumps.MenuItem("Add Expansion", callback=self.add_expansion))
+        menu.append(rumps.MenuItem("Edit Expansion", callback=self.edit_expansion))
+        menu.append(rumps.MenuItem("Delete Expansion", callback=self.delete_expansion))
+        return menu
+
+    def copy_expansion(self, sender):
+        name = sender.title
+        content = self.expansions["expansions"][name]
+        pyperclip.copy(content)
+        rumps.notification("Expanse", "Copied to clipboard", name)
+
+    def add_expansion(self, _):
+        window = rumps.Window(
+            message="Enter expansion name:",
+            title="Add Expansion",
+            dimensions=(100, 20)
+        )
+        name_response = window.run()
+        if not name_response.clicked:
+            return
+
+        name = name_response.text
+        if not name:
+            rumps.alert("Error", "Name cannot be empty")
+            return
+
+        window = rumps.Window(
+            message="Enter expansion content:",
+            title="Add Expansion",
+            dimensions=(300, 100)
+        )
+        content_response = window.run()
+        if not content_response.clicked:
+            return
+
+        content = content_response.text
+        if not content:
+            rumps.alert("Error", "Content cannot be empty")
+            return
+
+        self.expansions["expansions"][name] = content
+        self.save_expansions()
+        self.menu = self.build_menu()
+
+    def edit_expansion(self, _):
+        window = rumps.Window(
+            message="Select expansion to edit:",
+            title="Edit Expansion",
+            dimensions=(100, 20),
+            default_text=""
+        )
+        response = window.run()
+        if not response.clicked:
+            return
+
+        name = response.text
+        if name not in self.expansions["expansions"]:
+            rumps.alert("Error", f"Expansion '{name}' not found")
+            return
+
+        window = rumps.Window(
+            message="Enter new content:",
+            title="Edit Expansion",
+            dimensions=(300, 100),
+            default_text=self.expansions["expansions"][name]
+        )
+        content_response = window.run()
+        if not content_response.clicked:
+            return
+
+        content = content_response.text
+        if not content:
+            rumps.alert("Error", "Content cannot be empty")
+            return
+
+        self.expansions["expansions"][name] = content
+        self.save_expansions()
+        self.menu = self.build_menu()
+
+    def delete_expansion(self, _):
+        window = rumps.Window(
+            message="Select expansion to delete:",
+            title="Delete Expansion",
+            dimensions=(100, 20),
+            default_text=""
+        )
+        response = window.run()
+        if not response.clicked:
+            return
+
+        name = response.text
+        if name not in self.expansions["expansions"]:
+            rumps.alert("Error", f"Expansion '{name}' not found")
+            return
+
+        if rumps.alert("Confirm", f"Delete expansion '{name}'?", ok="Delete", cancel="Cancel"):
+            del self.expansions["expansions"][name]
+            self.save_expansions()
+            self.menu = self.build_menu()
 
     def save_expansions(self):
         if not save_expansions(self.expfile, self.expansions):
-            print(f"Could not write to {self.expfile}.", file=sys.stderr)
-
-    def setup_gui(self):
-        self.root = tk.Tk()
-        self.root.title("Expanse")
-        self.root.geometry("400x300")
-
-        # Create main frame
-        main_frame = ttk.Frame(self.root, padding="10")
-        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-
-        # Listbox for expansions
-        self.listbox = tk.Listbox(main_frame, height=10)
-        self.listbox.grid(row=0, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S))
-        self.refresh_listbox()
-
-        # Buttons
-        ttk.Button(main_frame, text="Add", command=self.add_expansion).grid(row=1, column=0, pady=5)
-        ttk.Button(main_frame, text="Edit", command=self.edit_expansion).grid(row=1, column=1, pady=5)
-        ttk.Button(main_frame, text="Delete", command=self.delete_expansion).grid(row=2, column=0, pady=5)
-        ttk.Button(main_frame, text="Set Hotkey", command=self.set_hotkey).grid(row=2, column=1, pady=5)
-
-        # Status label
-        self.status_label = ttk.Label(main_frame, text="")
-        self.status_label.grid(row=3, column=0, columnspan=2, pady=5)
-
-        # Configure grid weights
-        self.root.columnconfigure(0, weight=1)
-        self.root.rowconfigure(0, weight=1)
-        main_frame.columnconfigure(0, weight=1)
-        main_frame.columnconfigure(1, weight=1)
-        main_frame.rowconfigure(0, weight=1)
-
-    def refresh_listbox(self):
-        self.listbox.delete(0, tk.END)
-        for name in self.expansions["expansions"]:
-            self.listbox.insert(tk.END, name)
-
-    def add_expansion(self):
-        dialog = tk.Toplevel(self.root)
-        dialog.title("Add Expansion")
-        dialog.geometry("300x200")
-
-        ttk.Label(dialog, text="Name:").grid(row=0, column=0, padx=5, pady=5)
-        name_entry = ttk.Entry(dialog)
-        name_entry.grid(row=0, column=1, padx=5, pady=5)
-
-        ttk.Label(dialog, text="Content:").grid(row=1, column=0, padx=5, pady=5)
-        content_text = tk.Text(dialog, height=5, width=30)
-        content_text.grid(row=1, column=1, padx=5, pady=5)
-
-        def save():
-            name = name_entry.get()
-            content = content_text.get("1.0", tk.END).strip()
-            if name and content:
-                self.expansions["expansions"][name] = content
-                self.save_expansions()
-                self.refresh_listbox()
-                dialog.destroy()
-
-        ttk.Button(dialog, text="Save", command=save).grid(row=2, column=0, columnspan=2, pady=10)
-
-    def edit_expansion(self):
-        selection = self.listbox.curselection()
-        if not selection:
-            messagebox.showwarning("Warning", "Please select an expansion to edit")
-            return
-
-        name = self.listbox.get(selection[0])
-        content = self.expansions["expansions"][name]
-
-        dialog = tk.Toplevel(self.root)
-        dialog.title("Edit Expansion")
-        dialog.geometry("300x200")
-
-        ttk.Label(dialog, text=f"Editing: {name}").grid(row=0, column=0, columnspan=2, padx=5, pady=5)
-        content_text = tk.Text(dialog, height=5, width=30)
-        content_text.insert("1.0", content)
-        content_text.grid(row=1, column=0, columnspan=2, padx=5, pady=5)
-
-        def save():
-            new_content = content_text.get("1.0", tk.END).strip()
-            self.expansions["expansions"][name] = new_content
-            self.save_expansions()
-            self.refresh_listbox()
-            dialog.destroy()
-
-        ttk.Button(dialog, text="Save", command=save).grid(row=2, column=0, columnspan=2, pady=10)
-
-    def delete_expansion(self):
-        selection = self.listbox.curselection()
-        if not selection:
-            messagebox.showwarning("Warning", "Please select an expansion to delete")
-            return
-
-        name = self.listbox.get(selection[0])
-        if messagebox.askyesno("Confirm", f"Delete expansion '{name}'?"):
-            del self.expansions["expansions"][name]
-            self.save_expansions()
-            self.refresh_listbox()
-
-    def set_hotkey(self):
-        dialog = tk.Toplevel(self.root)
-        dialog.title("Set Hotkey")
-        dialog.geometry("300x100")
-
-        ttk.Label(dialog, text="Press the hotkey combination:").grid(row=0, column=0, padx=5, pady=5)
-        hotkey_label = ttk.Label(dialog, text="")
-        hotkey_label.grid(row=1, column=0, padx=5, pady=5)
-
-        current_keys = set()
-
-        def on_press(key):
-            current_keys.add(key)
-            hotkey_label.config(text="+".join(str(k) for k in current_keys))
-
-        def on_release(key):
-            if key in current_keys:
-                current_keys.remove(key)
-            if not current_keys:
-                self.hotkey = tuple(current_keys)
-                self.status_label.config(text=f"Hotkey set to: {hotkey_label.cget('text')}")
-                dialog.destroy()
-
-        listener = keyboard.Listener(on_press=on_press, on_release=on_release)
-        listener.start()
-
-    def show_expansion_popup(self):
-        popup = tk.Toplevel(self.root)
-        popup.title("Select Expansion")
-        popup.geometry("200x300")
-
-        listbox = tk.Listbox(popup)
-        for name in self.expansions["expansions"]:
-            listbox.insert(tk.END, name)
-        listbox.pack(fill=tk.BOTH, expand=True)
-
-        def on_select(event):
-            selection = listbox.curselection()
-            if selection:
-                name = listbox.get(selection[0])
-                content = self.expansions["expansions"][name]
-                # Copy to clipboard
-                self.root.clipboard_clear()
-                self.root.clipboard_append(content)
-                popup.destroy()
-
-        listbox.bind("<<ListboxSelect>>", on_select)
-
-    def run(self):
-        def on_activate():
-            # Schedule the GUI operation to run in the main thread
-            self.root.after(0, self.show_expansion_popup)
-
-        def for_canonical(f):
-            return lambda k: f(listener.canonical(k))
-
-        hotkey = keyboard.HotKey(keyboard.HotKey.parse("<cmd>+<shift>+u"), on_activate)
-
-        with keyboard.Listener(
-            on_press=for_canonical(hotkey.press),
-            on_release=for_canonical(hotkey.release),
-        ) as listener:
-            self.root.mainloop()
+            rumps.alert("Error", f"Could not write to {self.expfile}")
 
 
 def main():
-    daemon = ExpanseDaemon()
-    daemon.run()
+    app = ExpanseDaemon()
+    app.run()

@@ -1,4 +1,5 @@
 click
 pytest
 pynput
-tkinter
+rumps
+pyperclip
