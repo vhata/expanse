@@ -1,27 +1,71 @@
-## Expanse: quick access to saved text snippets
+# Expanse
 
-```
-$ expanse --help
-Usage: expanse [OPTIONS] COMMAND [ARGS]...
+A text snippet manager with global keyboard shortcuts for macOS.
 
-Options:
-  -f, --expansion-file PATH
-  --help                     Show this message and exit.
+## Features
 
-Commands:
-  add     Add expansion
-  delete  Remove expansion
-  dump    Dump expansion file
-  edit    Edit expansion
-  get     Get expansion contents
-  list    List expansions
-  show    Show expansion
-```
+- Store and manage text snippets
+- Two interfaces:
+  - Simple command-line interface (CLI)
+  - GUI with global keyboard shortcuts (Ctrl+Alt+E by default)
+- Snippets are stored in `~/.expanserc`
 
-```
-$ expanse add -n test -e "Some long text you want to expand to"
+## Installation
 
-$ expanse get test
-Some long text you want to expand to
+```bash
+# Install the package
+pip install .
+
+# Start the daemon
+expanse-daemon
 ```
 
+The daemon will run in the background and can be triggered with Ctrl+Alt+E.
+
+## Usage
+
+### GUI Mode (with keyboard shortcuts)
+
+Run `expanse-gui` to start the GUI where you can:
+- Add new snippets
+- Edit existing snippets
+- Delete snippets
+- Set custom keyboard shortcuts
+- Access snippets via global keyboard shortcut (Ctrl+Alt+E by default)
+
+### Command Line Mode
+
+The `expanse` command provides the following subcommands:
+
+```bash
+# Add a new snippet
+expanse add -n test -e "Some long text you want to expand to"
+
+# Get a snippet's content
+expanse get test
+
+# List all snippets
+expanse list
+
+# Edit a snippet
+expanse edit -n test
+
+# Show a snippet
+expanse show test
+
+# Delete a snippet
+expanse delete -n test
+
+# Dump all snippets
+expanse dump
+```
+
+## Development
+
+```bash
+# Install in development mode
+pip install -e .
+
+# Run tests
+pytest
+```

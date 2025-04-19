@@ -11,7 +11,7 @@ setup(
     entry_points={
         "console_scripts": [
             "expanse=expanse.cli:main",
-            "expanse-daemon=expanse.daemon:main",
+            "expanse-gui=expanse.daemon:main",
         ],
     },
     python_requires=">=3.6",
@@ -26,4 +26,4 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-) 
+)
