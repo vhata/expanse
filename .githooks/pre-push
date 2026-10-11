@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Run the unit suite before anything leaves this clone.
+set -euo pipefail
+exec bash "$(git rev-parse --show-toplevel)/scripts/test.sh" -q
