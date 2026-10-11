@@ -22,7 +22,7 @@ Each check is a standalone script in `scripts/` or `docket/scripts/`, runnable f
 
 `scripts/check.sh` is the composite entry point: `ci.yml` runs it rather than the gates individually, so its CI columns are those of the gates it runs. `scripts/format.sh` is the write-mode formatter. There is no type checker gate yet (`add-typecheck-gate` in `TODO.md`).
 
-Hooks live in the tracked `.githooks/` directory and are wired by `bash scripts/setup.sh` through `git config core.hooksPath .githooks`. Pre-commit checks only, against the staged content of staged Python files, and never rewrites files. Bypassing a hook is for a broken toolchain only; state the bypass and the equivalent checks in the PR.
+`ruff.toml` limits ruff to Python files and excludes `docket/`, so the formatter never touches Markdown. Hooks live in the tracked `.githooks/` directory and are wired by `bash scripts/setup.sh` through `git config core.hooksPath .githooks`. Pre-commit checks only, against the staged content of staged Python files, and never rewrites files. Measured pre-commit time: under 0.1 s warm. Bypassing a hook is for a broken toolchain only; state the bypass and the equivalent checks in the PR. One time-boxed exception for the pre-push hook is recorded in `docs/DECISIONS.md`.
 
 Toolchain pins: `.python-version` (3.12), `requirements-dev.txt` (pytest, pytest-mock, pyfakefs, ruff), `ruff.toml` (rule set). Runtime dependencies in `setup.py` are not pinned. Bumping a pin is its own PR.
 
@@ -33,7 +33,7 @@ Known state: `main` fails `fmt-check`, `lint` and `test` on code that predates t
 - A behaviour change or bug fix in `expanse/core.py` or `expanse/cli.py` comes with a test through `click.testing.CliRunner` or the core functions directly.
 - Tests isolate the snippet store with pyfakefs or a temporary `$HOME`; they never touch the real `~/.expanserc`.
 - Changes to `expanse/daemon.py` and the Hammerspoon-facing output are verified by hand on macOS; the PR states the scenario run.
-- An empty or skipped suite is a failed gate. There is no coverage gate.
+- Empty collection fails the gate (pytest exit 5). A skip does not fail it, so every skip carries a named reason and review checks it. There is no coverage gate.
 - No automatic retries. A flaky test is filed in `TODO.md` with its output and fixed or quarantined by name.
 
 ## Review inputs

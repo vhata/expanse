@@ -8,8 +8,8 @@ What the structure is now, the boundaries parallel work must respect, and the in
 - `expanse/cli.py`: the Click CLI (`expanse`), subcommands `add`, `edit`, `delete`, `list`, `show`, `get`, `dump`. Entry point `expanse.cli:main`.
 - `expanse/daemon.py`: optional rumps menu-bar app (`expanse-gui`, entry point `expanse.daemon:main`) that copies snippets to the clipboard with pyperclip. macOS only.
 - `tests/`: pytest suite.
-- `install.sh`, `com.expanse.daemon.plist`, `run.sh`: launchd and development helpers for the daemon.
-- Outside the repository: `~/.hammerspoon/expanse.lua`, the preferred GUI, which shells out to the `expanse` CLI through a `~/bin/expanse` symlink.
+- `install.sh`, `com.expanse.daemon.plist`, `run.sh`: launchd and development helpers for the daemon. None of them works as written (`fix-daemon-install`, `fix-daemon-entry-points`).
+- Outside the repository: `~/.hammerspoon/expanse.lua`, the preferred GUI, which shells out to the `expanse` CLI through `~/bin/expanse`. On the user's machine that is a wrapper script running a separate install in `~/.virtualenvs/expanse`, not any worktree's `.venv/`, so a change reaches Hammerspoon only once that install is updated.
 
 ## Shared interfaces
 

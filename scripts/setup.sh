@@ -13,7 +13,6 @@ if ! "$PY" -c 'import sys; sys.exit(sys.version_info[:2] != (3, 12))'; then
 fi
 
 [ -x .venv/bin/python ] || "$PY" -m venv .venv
-.venv/bin/python -m pip install --quiet --upgrade pip
 .venv/bin/python -m pip install --quiet -e . -r requirements-dev.txt
 
 git config core.hooksPath .githooks

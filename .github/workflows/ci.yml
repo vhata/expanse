@@ -31,8 +31,8 @@ concurrency:
 
 jobs:
   check:
-    # macOS: the package depends on macOS-only libraries (rumps, pynput's
-    # Quartz backend), and that is the only platform it targets.
+    # macOS: the only platform the project targets, and the daemon's
+    # dependencies (rumps, pyperclip's pbcopy backend) are macOS-only.
     runs-on: macos-latest
     timeout-minutes: 20
     steps:

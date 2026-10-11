@@ -14,6 +14,17 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 
 ### Unprioritized
 
+- [CLI] `edit-abort-keeps-content` — **Quitting the editor without saving leaves the snippet unchanged.** `click.edit` returns `None` when the editor exits without saving, and `expanse edit` stores that, replacing the content with `null`; `expanse dump` then crashes with `AttributeError`, which empties the Hammerspoon chooser.
+  - Source: independent review of task/adopt-docket, 2026-10-11
+  - Evidence: `HOME=$(mktemp -d) EDITOR=true expanse edit -n z` leaves `{"expansions": {"z": null}}`.
+  - Starting point: `expanse/cli.py`, `edit`.
+- [GUI] `daemon-reloads-store` — **The daemon never overwrites snippets added elsewhere while it runs.** It loads the store once at startup and saves its in-memory copy on every change, so anything the CLI or Hammerspoon added since startup is lost on the next daemon save.
+  - Source: independent review of task/adopt-docket, 2026-10-11
+  - Starting point: `expanse/daemon.py`; reload before each mutation. Found by reading the code, not reproduced.
+  - Related: `daemon-guards-malformed-store`, `atomic-save`
+- [GUI] `fix-daemon-entry-points` — **`run.sh` and `python -m expanse.daemon` start the daemon.** `run.sh` runs `python3 expanse/daemon.py`, which fails on the relative import `from .core`; `python -m expanse.daemon` (in `CLAUDE.md`) exits silently because no module has a `__main__` guard.
+  - Source: independent review of task/adopt-docket, 2026-10-11
+  - Related: `fix-daemon-install`
 - [CORE] `atomic-save` — **Saving snippets cannot truncate `~/.expanserc` if the process dies mid-write.** `save_expansions` opens the store with mode `w` and writes in place, so an interrupted write leaves an empty or partial file.
   - Source: task/adopt-docket inspection, 2026-10-11
   - Starting point: write to a temporary file in the same directory and `os.replace` it.
@@ -31,7 +42,7 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
   - Related: `fix-setup-metadata`
 - [TOOLING] `add-typecheck-gate` — **A type checker runs as `scripts/typecheck.sh` in `scripts/check.sh`, the pre-push hook and CI.** The code is partly annotated and nothing checks the annotations.
   - Source: task/adopt-docket inspection, 2026-10-11
-- [DOCS] `refresh-readme` — **`README.md` describes the CLI and the Hammerspoon integration as they work today.** It presents the daemon as the main interface, names an `expanse-daemon` command that does not exist and gives the hotkey as Ctrl+Alt+E (Hammerspoon uses Cmd+Alt+E).
+- [DOCS] `refresh-readme` — **`README.md` describes the CLI and the Hammerspoon integration as they work today.** It presents the daemon as the main interface, names an `expanse-daemon` command that does not exist and gives the hotkey as Ctrl+Alt+E (Hammerspoon uses Cmd+Alt+E). Its `expanse show test` example prompts for a name, because `show` takes `-n`.
   - Source: task/adopt-docket inspection, 2026-10-11
 - [DOCS] `slim-claude-md` — **`CLAUDE.md` holds only Claude-specific guidance and defers to `AGENTS.md` and `ARCHITECTURE.md`.** It restates the architecture and development commands, some of them stale (`pip3 install -r pip-requirements.txt`, bare `pytest`).
   - Source: task/adopt-docket inspection, 2026-10-11
@@ -56,10 +67,10 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 
 - [TOOLING] `fix-broken-tests` — **The test suite runs and passes against the current package layout.** Every test fails on `main`: they import `expanse.expanse` and patch attributes on it, but that module was split into `expanse/core.py` and `expanse/cli.py`.
   - Source: task/adopt-docket inspection, 2026-10-11
-  - Starting point: `tests/test_expanse.py`; repoint imports and patches at `expanse.core` and `expanse.cli`. In the main clone the import only resolves because the stray root `__init__.py` makes the repository directory itself a package named `expanse`; in a worktree with another directory name collection fails outright. Remove that file in the same change.
+  - Starting point: `tests/test_expanse.py`; repoint imports and patches at `expanse.core` and `expanse.cli`. In the main clone the import only resolves because the stray root `__init__.py` makes the repository directory itself a package named `expanse`; in a worktree with another directory name collection fails outright. Remove that file in the same change. The CLI tests also pass a `-f <file>` global option the CLI no longer has; the store now comes from `$HOME`, so point `HOME` at a temporary or fake directory instead. The pre-commit hook lints `tests/test_expanse.py` when it is staged, so this change also clears that file's five findings (I001, E712 x3, F841).
 - [TOOLING] `ruff-baseline` — **`scripts/fmt-check.sh` and `scripts/lint.sh` pass on `main`.** The existing code predates the gates: two files are unformatted and `ruff check` reports 15 findings (unused imports, import order, `not x in y`, `== True`, an unused variable).
   - Source: task/adopt-docket inspection, 2026-10-11
-  - Starting point: `bash scripts/format.sh && bash scripts/lint.sh --fix`, then the remaining findings by hand; the `== True` ones are in the tests, so sequence after `fix-broken-tests` or coordinate the file.
+  - Starting point: `bash scripts/format.sh && bash scripts/lint.sh --fix`, then the remaining findings by hand. The findings in `tests/test_expanse.py` belong to `fix-broken-tests`; this entry covers `expanse/`, so the two touch disjoint files.
   - Related: `fix-broken-tests`
 
 ### P2 Normal
