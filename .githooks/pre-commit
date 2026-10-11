@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Check-only: format and lint the staged content of staged Python files,
+# so unstaged edits neither hide nor cause failures. Never rewrites files;
+# run 'bash scripts/format.sh' or 'bash scripts/lint.sh --fix' to repair.
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+RUFF="$ROOT/.venv/bin/ruff"
+cd "$ROOT"
+
+status=0
+while IFS= read -r -d '' file; do
+  [ -x "$RUFF" ] || { echo "pre-commit: $RUFF missing; run 'bash scripts/setup.sh'" >&2; exit 1; }
+  git show ":$file" | "$RUFF" format --check --quiet --stdin-filename "$file" - \
+    || { echo "pre-commit: $file is not formatted" >&2; status=1; }
+  git show ":$file" | "$RUFF" check --quiet --stdin-filename "$file" - || status=1
+done < <(git diff --cached --name-only --diff-filter=ACMR -z -- '*.py')
+exit "$status"

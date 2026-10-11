@@ -1,3 +1,8 @@
 __pycache__/
 *.py[cod]
 build/
+.venv/
+.worktrees/
+.docket/
+.pytest_cache/
+.ruff_cache/
