@@ -88,3 +88,5 @@ Tests use:
 - `pyfakefs` for filesystem simulation
 
 Run individual tests: `pytest tests/test_expanse.py::test_function_name`
+
+@AGENTS.md
