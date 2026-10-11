@@ -32,7 +32,7 @@ concurrency:
 jobs:
   check:
     # macOS: the only platform the project targets, and the daemon's
-    # dependencies (rumps, pyperclip's pbcopy backend) are macOS-only.
+    # rumps dependency is macOS-only.
     runs-on: macos-latest
     timeout-minutes: 20
     steps:
