@@ -8,11 +8,6 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 
 ### P1 High
 
-- [TOOLING] `ruff-baseline` — **`scripts/fmt-check.sh` and `scripts/lint.sh` pass on `main`.** The existing code predates the gates: two files are unformatted and `ruff check` reports 15 findings (unused imports, import order, `not x in y`, `== True`, an unused variable).
-  - Source: task/adopt-docket inspection, 2026-10-11
-  - Starting point: `bash scripts/format.sh && bash scripts/lint.sh --fix`, then the remaining findings by hand. The findings in `tests/test_expanse.py` belong to `fix-broken-tests`; this entry covers `expanse/`. It cannot be pushed until the pre-push hook passes, which needs `fix-broken-tests`.
-  - Depends on: `fix-broken-tests`
-
 ### P2 Normal
 
 ### P3 Low
@@ -70,9 +65,9 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 
 ### P1 High
 
-- [TOOLING] `fix-broken-tests` — **The test suite runs and passes against the current package layout.** Every test fails on `main`: they import `expanse.expanse` and patch attributes on it, but that module was split into `expanse/core.py` and `expanse/cli.py`.
+- [TOOLING] `ruff-baseline` — **`scripts/fmt-check.sh` and `scripts/lint.sh` pass on `main`.** The existing code predates the gates: two files are unformatted and `ruff check` reports 9 findings in `expanse/` (unused imports, import order, `not x in y`), all auto-fixable.
   - Source: task/adopt-docket inspection, 2026-10-11
-  - Starting point: `tests/test_expanse.py`; repoint imports and patches at `expanse.core` and `expanse.cli`. In the main clone the import only resolves because the stray root `__init__.py` makes the repository directory itself a package named `expanse`; in a worktree with another directory name collection fails outright. Remove that file in the same change. The CLI tests also pass a `-f <file>` global option the CLI no longer has; the store now comes from `$HOME`, so point `HOME` at a temporary or fake directory instead. The pre-commit hook lints `tests/test_expanse.py` when it is staged, so this change also clears that file's five findings (I001, E712 x3, F841).
+  - Starting point: `bash scripts/format.sh && bash scripts/lint.sh --fix`.
 
 ### P2 Normal
 
