@@ -84,8 +84,7 @@ Snippets are stored as JSON:
 
 Tests use:
 - `pytest` with `click.testing.CliRunner`
-- `pytest-mock` for mocking
-- `pyfakefs` for filesystem simulation
+- `pyfakefs` for filesystem simulation, with `$HOME` pointed at a fake directory
 
 Run individual tests: `pytest tests/test_expanse.py::test_function_name`
 
