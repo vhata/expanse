@@ -71,10 +71,6 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 
 ### P1 High
 
-- [TOOLING] `ruff-baseline` — **`scripts/fmt-check.sh` and `scripts/lint.sh` pass on `main`.** The existing code predates the gates: two files are unformatted and `ruff check` reports 9 findings in `expanse/` (unused imports, import order, `not x in y`), all auto-fixable.
-  - Source: task/adopt-docket inspection, 2026-10-11
-  - Starting point: `bash scripts/format.sh && bash scripts/lint.sh --fix`.
-
 ### P2 Normal
 
 ### P3 Low

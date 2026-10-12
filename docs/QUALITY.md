@@ -26,8 +26,6 @@ Each check is a standalone script in `scripts/` or `docket/scripts/`, runnable f
 
 Toolchain pins: `.python-version` (3.12), `requirements-dev.txt` (pytest, pytest-mock, pyfakefs, ruff), `ruff.toml` (rule set). Runtime dependencies in `setup.py` are not pinned. Bumping a pin is its own PR.
 
-Known state: `main` fails `fmt-check` and `lint` on code in `expanse/` that predates these gates. `ruff-baseline` in `TODO.md` makes it green.
-
 ## Test policy
 
 - A behaviour change or bug fix in `expanse/core.py` or `expanse/cli.py` comes with a test through `click.testing.CliRunner` or the core functions directly.
