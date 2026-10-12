@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 
 import sys
-from pathlib import Path
 
 import click
-from click.termui import confirm
 
-from .core import get_expfile, load_expansions, save_expansions, ensure_expfile
+from .core import ensure_expfile, get_expfile, load_expansions, save_expansions
 
 
 @click.group()
@@ -27,7 +25,7 @@ def edit(ctx, name: str) -> None:
     "Edit expansion"
     expfile = ctx.obj["EXPANSION_FILE"]
     exps = load_expansions(expfile)
-    if not name in exps["expansions"]:
+    if name not in exps["expansions"]:
         click.echo(f"No such expansion: {name}, creating new one")
         expansion = ""
     else:
@@ -47,7 +45,9 @@ def add(ctx, name: str, expansion: str) -> None:
     "Add expansion"
     expfile = ctx.obj["EXPANSION_FILE"]
     exps = load_expansions(expfile)
-    if name in exps["expansions"] and not click.confirm(f"Expansion {name} already exists. Overwrite?"):
+    if name in exps["expansions"] and not click.confirm(
+        f"Expansion {name} already exists. Overwrite?"
+    ):
         ctx.abort()
     if not expansion:
         click.echo("Enter expansion. Terminate with ctrl-D:")
@@ -72,7 +72,7 @@ def delete(ctx, name: str) -> None:
     "Remove expansion"
     expfile = ctx.obj["EXPANSION_FILE"]
     exps = load_expansions(expfile)
-    if not name in exps["expansions"]:
+    if name not in exps["expansions"]:
         click.echo(f"No such expansion: {name}", err=True)
         ctx.abort()
     del exps["expansions"][name]
@@ -96,7 +96,7 @@ def list(ctx) -> None:
 def show(ctx, name: str) -> None:
     "Show expansion"
     exps = load_expansions(ctx.obj["EXPANSION_FILE"])
-    if not name in exps["expansions"]:
+    if name not in exps["expansions"]:
         click.echo(f"No such expansion: {name}", err=True)
         ctx.abort()
     click.echo(click.style(f"'{name}'", fg="green"))

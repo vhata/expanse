@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-import sys
-from pathlib import Path
-import rumps
 import pyperclip
+import rumps
 
 from .core import get_expfile, load_expansions, save_expansions
 
@@ -33,9 +31,7 @@ class ExpanseDaemon(rumps.App):
 
     def add_expansion(self, _):
         window = rumps.Window(
-            message="Enter expansion name:",
-            title="Add Expansion",
-            dimensions=(100, 20)
+            message="Enter expansion name:", title="Add Expansion", dimensions=(100, 20)
         )
         name_response = window.run()
         if not name_response.clicked:
@@ -47,9 +43,7 @@ class ExpanseDaemon(rumps.App):
             return
 
         window = rumps.Window(
-            message="Enter expansion content:",
-            title="Add Expansion",
-            dimensions=(300, 100)
+            message="Enter expansion content:", title="Add Expansion", dimensions=(300, 100)
         )
         content_response = window.run()
         if not content_response.clicked:
@@ -69,7 +63,7 @@ class ExpanseDaemon(rumps.App):
             message="Select expansion to edit:",
             title="Edit Expansion",
             dimensions=(100, 20),
-            default_text=""
+            default_text="",
         )
         response = window.run()
         if not response.clicked:
@@ -84,7 +78,7 @@ class ExpanseDaemon(rumps.App):
             message="Enter new content:",
             title="Edit Expansion",
             dimensions=(300, 100),
-            default_text=self.expansions["expansions"][name]
+            default_text=self.expansions["expansions"][name],
         )
         content_response = window.run()
         if not content_response.clicked:
@@ -104,7 +98,7 @@ class ExpanseDaemon(rumps.App):
             message="Select expansion to delete:",
             title="Delete Expansion",
             dimensions=(100, 20),
-            default_text=""
+            default_text="",
         )
         response = window.run()
         if not response.clicked:
