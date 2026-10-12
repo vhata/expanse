@@ -14,6 +14,12 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 
 ### Unprioritized
 
+- [CLI] `test-malformed-store-abort` — **A CLI command against a malformed store exits non-zero and leaves the file unchanged.** The group's `ensure_expfile` check in `expanse/cli.py` aborts on a malformed store, which is how the CLI keeps the "a malformed file is reported rather than overwritten" invariant, but no test covers it: replacing the check with `if False:` leaves the suite green.
+  - Source: independent review of todo/fix-broken-tests (#2), 2026-10-12
+  - Starting point: a test in `tests/test_expanse.py` using the `expfile` fixture with invalid JSON, invoking `add`, and asserting a non-zero exit and the original contents.
+- [TOOLING] `drop-pytest-mock` — **`requirements-dev.txt` pins only what the suite uses.** The tests stopped using `pytest-mock` when they moved to pyfakefs and a fake `$HOME`, but it is still pinned and listed in `docs/QUALITY.md`.
+  - Source: independent review of todo/fix-broken-tests (#2), 2026-10-12
+  - Starting point: remove the pin from `requirements-dev.txt` and the mention in `docs/QUALITY.md`; a pin change is its own PR.
 - [CLI] `edit-abort-keeps-content` — **Quitting the editor without saving leaves the snippet unchanged.** `click.edit` returns `None` when the editor exits without saving, and `expanse edit` stores that, replacing the content with `null`; `expanse dump` then crashes with `AttributeError`, which empties the Hammerspoon chooser.
   - Source: independent review of task/adopt-docket, 2026-10-11
   - Evidence: `HOME=$(mktemp -d) EDITOR=true expanse edit -n z` leaves `{"expansions": {"z": null}}`.
