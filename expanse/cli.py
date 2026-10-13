@@ -34,12 +34,15 @@ def edit(ctx, name: str) -> None:
     "Edit expansion"
     expfile = ctx.obj["EXPANSION_FILE"]
     exps = load_expansions(expfile)
-    if name not in exps["expansions"]:
+    exists = name in exps["expansions"]
+    if not exists:
         click.echo(f"No such expansion: {name}, creating new one")
-        expansion = ""
-    else:
-        expansion = exps["expansions"][name]
-    expansion = click.edit(expansion)
+    expansion = click.edit(exps["expansions"].get(name, ""))
+    if expansion is None:
+        # The editor exited without saving: store nothing.
+        outcome = "unchanged" if exists else "not created"
+        click.echo(f"Editor closed without saving; {name} {outcome}.", err=True)
+        ctx.exit(1)
     exps["expansions"][name] = expansion
     if not save_expansions(expfile, exps):
         click.echo(f"Could not write to {expfile}.", err=True)
