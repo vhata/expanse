@@ -8,6 +8,32 @@ Only work promoted from whole-codebase reviews belongs here. Every entry is read
 
 ## P2 Normal
 
+- [GUI] `daemon-menu-rebuild` — **After any add, edit or delete, the daemon menu lists exactly the current snippets, plus the management items.** rumps' `menu` setter only adds items, so deleted snippets stay in the menu (clicking one raises `KeyError`) and new ones land below the management items. A snippet named like a management item also hides that item's snippet.
+  - Source: review/2026-10-12-1703-full.md, 2026-10-12
+  - Findings: `daemon-menu-not-rebuilt`, `daemon-menu-title-collision`
+  - Starting point: `expanse/daemon.py` `build_menu` and the three `self.menu = self.build_menu()` sites; clear the menu before rebuilding, and keep snippet titles out of the management items' key space. Can be verified headlessly by constructing `ExpanseDaemon` under a temporary `HOME`.
+  - Related: `daemon-reloads-store`
+- [CORE] `core-validates-store` — **`expanse/core.py` validates the whole store in one place and raises a store error that every caller handles.** Today `load_expansions` turns a parse error into an empty store, only the CLI validates first, other malformed shapes and I/O errors end in tracebacks, and non-string values reach `get` and `dump`.
+  - Source: review/2026-10-12-1703-full.md, 2026-10-12
+  - Findings: `load-swallows-malformed-store`, `store-shape-unvalidated`, `get-prints-non-string-values`
+  - Starting point: one validator for "a dict with an `expansions` dict of string to string", catching `OSError` and `ValueError`, shared by `load_expansions` and `ensure_expfile`; the CLI reports it through the existing "Could not access" path.
+  - Related: `daemon-guards-malformed-store`, `edit-abort-keeps-content`, `test-malformed-store-abort`
+- [CLI] `test-cli-contract` — **Tests pin the `dump` and `get` output that Hammerspoon parses, and cover `list`, `show` and `edit`.** No test covers that output now, and mutating it leaves the suite green.
+  - Source: review/2026-10-12-1703-full.md, 2026-10-12
+  - Findings: `cli-contract-untested`
+  - Starting point: `tests/test_expanse.py` with CliRunner and the `expfile` fixture; include multi-line content, `get -- <unknown>` printing nothing with exit 0, and a name starting with `-`.
+
 ## P3 Low
+
+- [CLI] `cli-input-fidelity` — **`add` and `edit` store exactly what the user gave and reject names that would break the `dump` format.** A name containing a newline shifts every later entry in the Hammerspoon chooser, and `add` without `-e` strips leading indentation.
+  - Source: review/2026-10-12-1703-full.md, 2026-10-12
+  - Findings: `dump-name-newline-breaks-pairs`, `add-stdin-strips-whitespace`
+  - Starting point: `expanse/cli.py` `add` and `edit`; also state the single-line name rule under Shared interfaces in `ARCHITECTURE.md`.
+  - Related: `test-cli-contract`; land that first so the dump format is pinned by tests
+- [CORE] `private-store-permissions` — **`~/.expanserc` is created and rewritten with mode 0600.** It is created 0644 under the default umask, and macOS home directories are group-readable by `staff`.
+  - Source: review/2026-10-12-1703-full.md, 2026-10-12
+  - Findings: `store-world-readable`
+  - Starting point: `expanse/core.py` `save_expansions` and `ensure_expfile`; take it with `atomic-save`, which rewrites the same function.
+  - Related: `atomic-save`
 
 ## Unprioritized

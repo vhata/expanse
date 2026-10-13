@@ -10,7 +10,7 @@ Read when changing code or preparing a PR. This document describes the gates as 
 
 ## Gates
 
-Each check is a standalone script in `scripts/` or `docket/scripts/`, runnable from any directory, exiting non-zero on failure. Hooks, CI and agents run the same scripts. The gate scripts use the worktree's `.venv/` and fail with a pointer to `bash scripts/setup.sh` when it is missing.
+Each check is a standalone script in `scripts/` or `docket/scripts/`, runnable from any directory, exiting non-zero on failure. CI, agents and the pre-push hook run the same scripts; the pre-commit hook runs ruff itself, on the staged content of staged Python files, with the same `ruff.toml`. The gate scripts use the worktree's `.venv/` and fail with a pointer to `bash scripts/setup.sh` when it is missing.
 
 | Script | Runs | Pre-commit | Pre-push | CI on PR | CI on main | Scheduled |
 | --- | --- | --- | --- | --- | --- | --- |
