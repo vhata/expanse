@@ -78,6 +78,28 @@ def test_load_valid_store(fs, expfile):
     assert core.load_expansions(expfile) == store
 
 
+def test_save_valid_store(fs, expfile):
+    fs.create_file(expfile, contents=b'{"expansions": {}}')
+    assert core.save_expansions(expfile, {"expansions": {"a": "one"}}) is True
+    assert json.loads(contents(fs, expfile)) == {"expansions": {"a": "one"}}
+
+
+@pytest.mark.parametrize(
+    "store",
+    [{"expansions": {"keep": "me", "n": None}}, {"expansions": {"a": 1}}, {"expansions": []}, []],
+)
+def test_save_refuses_invalid_store(fs, expfile, store):
+    original = b'{"expansions": {"keep": "me"}}'
+    fs.create_file(expfile, contents=original)
+    assert core.save_expansions(expfile, store) is False
+    assert contents(fs, expfile) == original
+
+
+def test_save_invalid_store_creates_nothing(expfile):
+    assert core.save_expansions(expfile, {"expansions": {"n": None}}) is False
+    assert not expfile.exists()
+
+
 def test_load_malformed_raises(fs, expfile, malformed):
     with pytest.raises(core.StoreError):
         core.load_expansions(expfile)
@@ -154,4 +176,15 @@ def test_cli_reports_store_error_from_a_command(fs, expfile, monkeypatch):
     monkeypatch.setattr(cli, "ensure_expfile", lambda expfile: None)
     result = runner.invoke(cli.cli, COMMANDS["add"])
     assert_reported(result)
+    assert contents(fs, expfile) == original
+
+
+def test_cli_edit_aborted_in_editor_leaves_store_unchanged(fs, expfile, monkeypatch):
+    """click.edit returns None when the editor exits without saving; that is never stored."""
+    original = b'{"expansions": {"keep": "me"}}'
+    fs.create_file(expfile, contents=original)
+    monkeypatch.setattr(cli.click, "edit", lambda *args, **kwargs: None)
+    result = runner.invoke(cli.cli, COMMANDS["edit"])
+    assert result.exit_code != 0
+    assert "Could not write to /home/tester/.expanserc." in result.stderr
     assert contents(fs, expfile) == original

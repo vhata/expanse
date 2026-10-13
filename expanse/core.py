@@ -58,7 +58,15 @@ def load_expansions(expfile: Path) -> dict:
 
 
 def save_expansions(expfile: Path, expansions: dict) -> bool:
-    """Save expansions to file."""
+    """Save expansions to file.
+
+    Returns False, leaving the file untouched, if expansions is not a
+    valid store or the file cannot be written.
+    """
+    try:
+        validate_expansions(expansions)
+    except StoreError:
+        return False
     try:
         with expfile.open("w") as f:
             json.dump(expansions, f)
