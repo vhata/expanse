@@ -76,10 +76,11 @@ def contents(fs, path):
 
 
 def assert_reported(result, expfile="/home/tester/.expanserc"):
-    assert result.exit_code != 0
+    # An uncaught exception would leave something other than SystemExit here.
+    assert result.exit_code == 1
+    assert isinstance(result.exception, SystemExit)
     assert result.stdout == ""
     assert f"Could not access expansion file {expfile}: " in result.stderr
-    assert "Traceback" not in result.output
 
 
 # Core
@@ -179,9 +180,8 @@ def test_store_error_names_the_problem(fs, expfile, store, message):
 # CLI
 
 
-@pytest.mark.parametrize("command", ["add", "get", "dump"])
-def test_cli_malformed_store_reported_and_unchanged(fs, expfile, malformed, command):
-    result = runner.invoke(cli.cli, COMMANDS[command])
+def test_cli_malformed_store_reported_and_unchanged(fs, expfile, malformed):
+    result = runner.invoke(cli.cli, COMMANDS["add"])
     assert_reported(result)
     assert contents(fs, expfile) == malformed
 
@@ -199,6 +199,22 @@ def test_every_command_reports_malformed_store(fs, expfile, command):
 def test_cli_inaccessible_store_reported(expfile, inaccessible, command):
     result = runner.invoke(cli.cli, COMMANDS[command])
     assert_reported(result)
+
+
+def test_cli_reports_malformed_store_before_prompting(fs, expfile):
+    """The group checks the store before a command prompts for anything."""
+    original = b'{"expansions": {"keep": "me", "n": null}}'
+    fs.create_file(expfile, contents=original)
+    result = runner.invoke(cli.cli, ["delete", "-n", "keep"], input="y\n")
+    assert_reported(result)
+    assert contents(fs, expfile) == original
+
+
+def test_cli_creates_missing_store(fs, expfile):
+    result = runner.invoke(cli.cli, ["dump"])
+    assert result.exit_code == 0
+    assert result.stdout == ""
+    assert json.loads(contents(fs, expfile)) == {"expansions": {}}
 
 
 @pytest.mark.parametrize("command", ["add", "dump"])
