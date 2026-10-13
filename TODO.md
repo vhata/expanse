@@ -57,6 +57,15 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 - [DOCS] `slim-claude-md` — **`CLAUDE.md` holds only Claude-specific guidance and defers to `AGENTS.md` and `ARCHITECTURE.md`.** It restates the architecture and development commands, some of them stale (`pip3 install -r pip-requirements.txt`, bare `pytest`).
   - Source: task/adopt-docket inspection, 2026-10-11
   - Also: it says to symlink `~/bin/expanse`, while on the user's machine that is a wrapper script around `~/.virtualenvs/expanse` (as `ARCHITECTURE.md` says). Source: review/2026-10-12-1703-full.md, 2026-10-12
+- [GUI] `daemon-pick-snippet-to-edit` — **The daemon's Edit and Delete actions let the user pick an existing snippet instead of typing its name.** Both open a text box for the name, so a typo ends in a "not found" alert; a submenu listing the snippets under each action would remove the step.
+  - Source: review/daemon-menu-rebuild (#6), 2026-10-13
+  - Starting point: `expanse/daemon.py` `edit_expansion`, `delete_expansion` and `rebuild_menu`.
+- [GUI] `daemon-empty-menu-separator` — **With no snippets, the daemon menu starts with the management items rather than a separator.** `rebuild_menu` always adds the separator after the snippet items, so an empty store shows a leading separator.
+  - Source: review/daemon-menu-rebuild (#6), 2026-10-13
+  - Starting point: `expanse/daemon.py` `rebuild_menu`; add the separator only when there are snippets.
+- [GUI] `daemon-notification-without-bundle` — **Copying a snippet from the daemon run out of a virtualenv shows its notification without printing a traceback.** rumps' notification centre support may need an `Info.plist` that a virtualenv's Python lacks; suspected during review, not reproduced.
+  - Source: independent review of review/daemon-menu-rebuild (#6), 2026-10-13
+  - Starting point: run `expanse-gui` from a worktree `.venv` with a temporary `HOME` and copy a snippet; the copy itself happens before the notification.
 
 ## Needs proof of concept
 
