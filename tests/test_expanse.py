@@ -95,11 +95,11 @@ def test_dump_empty_store(fs, expfile):
 @pytest.mark.parametrize(
     ("name", "stdout"),
     [
-        ("foo", "bar\n"),
-        ("multi", "line one\nline two\n\n"),
-        ("-dash", "starts with a dash\n"),
-        ("empty", "\n"),
-        ("unknown", ""),
+        pytest.param("foo", "bar\n", id="foo"),
+        pytest.param("multi", "line one\nline two\n\n", id="multi"),
+        pytest.param("-dash", "starts with a dash\n", id="dash"),
+        pytest.param("empty", "\n", id="empty"),
+        pytest.param("unknown", "", id="unknown"),
     ],
 )
 def test_get(fs, expfile, name, stdout):
@@ -141,15 +141,22 @@ def test_show_unknown(fs, expfile):
 
 @pytest.fixture
 def fake_editor(monkeypatch):
-    """Replace click.edit: record the text it was given and return `result`."""
+    """Replace click.edit: record the text it was given and return `result`.
+
+    A test must set `result`; the fake raises rather than return None, which
+    would silently store null (what click.edit returns on an aborted edit).
+    """
     calls = []
+    unset = object()
 
     def edit(text=None, **kwargs):
         calls.append(text)
+        if edit.result is unset:
+            raise AssertionError("fake_editor.result was not set")
         return edit.result
 
     edit.calls = calls
-    edit.result = None
+    edit.result = unset
     monkeypatch.setattr("click.edit", edit)
     return edit
 
