@@ -1,7 +1,5 @@
 import json
-import pathlib
 
-import pytest
 from click.testing import CliRunner
 
 from expanse import cli, core
@@ -10,15 +8,6 @@ runner = CliRunner()
 
 EMPTY_VALID_FILE = json.dumps({"expansions": {}})
 VALID_FILE = json.dumps({"expansions": {"foo": "bar"}})
-
-
-@pytest.fixture
-def expfile(fs, monkeypatch):
-    """The snippet store under a fake $HOME, so tests never touch ~/.expanserc."""
-    home = pathlib.Path("/home/tester")
-    fs.create_dir(home)
-    monkeypatch.setenv("HOME", str(home))
-    return home / ".expanserc"
 
 
 def test_get_expfile_uses_home(expfile):
