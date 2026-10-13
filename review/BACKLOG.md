@@ -8,11 +8,6 @@ Only work promoted from whole-codebase reviews belongs here. Every entry is read
 
 ## P2 Normal
 
-- [GUI] `daemon-menu-rebuild` — **After any add, edit or delete, the daemon menu lists exactly the current snippets, plus the management items.** rumps' `menu` setter only adds items, so deleted snippets stay in the menu (clicking one raises `KeyError`) and new ones land below the management items. A snippet named like a management item also hides that item's snippet.
-  - Source: review/2026-10-12-1703-full.md, 2026-10-12
-  - Findings: `daemon-menu-not-rebuilt`, `daemon-menu-title-collision`
-  - Starting point: `expanse/daemon.py` `build_menu` and the three `self.menu = self.build_menu()` sites; clear the menu before rebuilding, and keep snippet titles out of the management items' key space. Can be verified headlessly by constructing `ExpanseDaemon` under a temporary `HOME`.
-  - Related: `daemon-reloads-store`
 - [CORE] `core-validates-store` — **`expanse/core.py` validates the whole store in one place and raises a store error that every caller handles.** Today `load_expansions` turns a parse error into an empty store, only the CLI validates first, other malformed shapes and I/O errors end in tracebacks, and non-string values reach `get` and `dump`.
   - Source: review/2026-10-12-1703-full.md, 2026-10-12
   - Findings: `load-swallows-malformed-store`, `store-shape-unvalidated`, `get-prints-non-string-values`
