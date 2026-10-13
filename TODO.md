@@ -14,7 +14,7 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 
 ### Unprioritized
 
-- [GUI] `fix-daemon-entry-points` — **`run.sh` and `python -m expanse.daemon` start the daemon.** `run.sh` runs `python3 expanse/daemon.py`, which fails on the relative import `from .core`; `python -m expanse.daemon` (in `CLAUDE.md`) exits silently because no module has a `__main__` guard.
+- [GUI] `fix-daemon-entry-points` — **`run.sh` and `python -m expanse.daemon` start the daemon.** `run.sh` runs `python3 expanse/daemon.py`, which fails on the relative import `from .core`; `python -m expanse.daemon` exits silently because no module has a `__main__` guard.
   - Source: independent review of task/adopt-docket, 2026-10-11
   - Related: `fix-daemon-install`
   - Also: `run.sh` is tracked as mode 100644, so `./run.sh` fails with permission denied before reaching the import error. Source: review/2026-10-12-1703-full.md, 2026-10-12
@@ -89,8 +89,5 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 - [DOCS] `refresh-readme` — **`README.md` describes the CLI and the Hammerspoon integration as they work today.** It presents the daemon as the main interface, names an `expanse-daemon` command that does not exist and gives the hotkey as Ctrl+Alt+E (Hammerspoon uses Cmd+Alt+E). Its `expanse show test` example prompts for a name, because `show` takes `-n`.
   - Source: task/adopt-docket inspection, 2026-10-11
   - Also: it credits the daemon with a global hotkey and custom keyboard shortcuts, which `expanse/daemon.py` does not have. Source: review/2026-10-12-1703-full.md, 2026-10-12
-- [DOCS] `slim-claude-md` — **`CLAUDE.md` holds only Claude-specific guidance and defers to `AGENTS.md` and `ARCHITECTURE.md`.** It restates the architecture and development commands, some of them stale (`pip3 install -r pip-requirements.txt`, bare `pytest`).
-  - Source: task/adopt-docket inspection, 2026-10-11
-  - Also: it says to symlink `~/bin/expanse`, while on the user's machine that is a wrapper script around `~/.virtualenvs/expanse` (as `ARCHITECTURE.md` says). Source: review/2026-10-12-1703-full.md, 2026-10-12
 
 ### Unprioritized
