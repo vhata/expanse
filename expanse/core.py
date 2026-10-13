@@ -15,16 +15,15 @@ def get_expfile() -> Path:
 
 
 def validate_expansions(store: object) -> None:
-    """Raise StoreError unless store is {"expansions": {name: content}} of strings.
-
-    JSON object keys are always strings, so only the values need checking.
-    """
+    """Raise StoreError unless store is a dict whose "expansions" maps str to str."""
     if not isinstance(store, dict):
         raise StoreError("the file is not a JSON object")
     expansions = store.get("expansions")
     if not isinstance(expansions, dict):
         raise StoreError('"expansions" is missing or is not a JSON object')
     for name, content in expansions.items():
+        if not isinstance(name, str):
+            raise StoreError(f"the name {name!r} is not a string")
         if not isinstance(content, str):
             raise StoreError(f"the content of {name!r} is not a string")
 

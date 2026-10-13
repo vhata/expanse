@@ -107,6 +107,7 @@ def test_save_valid_store(fs, expfile):
     [
         {"expansions": {"keep": "me", "n": None}},
         {"expansions": {"a": 1}},
+        {"expansions": {1: "a"}},
         {"expansions": []},
         [],
     ],
