@@ -40,6 +40,12 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
   - Source: independent review of review/daemon-menu-rebuild (#6), 2026-10-13
   - Starting point: run `expanse-gui` from a worktree `.venv` with a temporary `HOME` and copy a snippet; the copy itself happens before the notification.
 
+- [CLI] `edit-trailing-newline` — **Opening a snippet in `expanse edit` and saving it unchanged leaves its content unchanged.** `click.edit` appends a newline to text that lacks one before handing it to the editor, and most editors save a final newline too, so `bar` comes back as `bar\n` and the Hammerspoon chooser then copies the newline.
+  - Source: todo/edit-abort-keeps-content, 2026-10-13
+  - Evidence: `click/_termui_impl.py` `Editor.edit` adds `"\n"` when the text does not end with one; the returned text is stored as is.
+  - Starting point: `expanse/cli.py` `edit`; decide whether to strip exactly one trailing newline the editor round-trip added, or only when the original lacked one.
+  - Related: `cli-input-fidelity`
+
 ## Needs proof of concept
 
 ### P0 Critical
