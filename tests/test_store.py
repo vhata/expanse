@@ -52,15 +52,33 @@ def inaccessible(request, fs, expfile):
     return request.param
 
 
+@pytest.fixture(params=[True, False], ids=["file", "no file"])
+def unsearchable_home(request, tmp_path, monkeypatch):
+    """A temporary $HOME without search permission; returns its path.
+
+    This uses the real filesystem, because pyfakefs reports a missing file
+    in such a directory as FileNotFoundError where macOS raises
+    PermissionError.
+    """
+    home = tmp_path / "home"
+    home.mkdir()
+    if request.param:
+        (home / ".expanserc").write_text('{"expansions": {}}')
+    monkeypatch.setenv("HOME", str(home))
+    home.chmod(0o600)
+    yield home
+    home.chmod(0o700)
+
+
 def contents(fs, path):
     """The file's bytes, read without going through its permissions."""
     return fs.get_object(path).byte_contents
 
 
-def assert_reported(result):
+def assert_reported(result, expfile="/home/tester/.expanserc"):
     assert result.exit_code != 0
     assert result.stdout == ""
-    assert "Could not access expansion file /home/tester/.expanserc: " in result.stderr
+    assert f"Could not access expansion file {expfile}: " in result.stderr
     assert "Traceback" not in result.output
 
 
@@ -86,7 +104,12 @@ def test_save_valid_store(fs, expfile):
 
 @pytest.mark.parametrize(
     "store",
-    [{"expansions": {"keep": "me", "n": None}}, {"expansions": {"a": 1}}, {"expansions": []}, []],
+    [
+        {"expansions": {"keep": "me", "n": None}},
+        {"expansions": {"a": 1}},
+        {"expansions": []},
+        [],
+    ],
 )
 def test_save_refuses_invalid_store(fs, expfile, store):
     original = b'{"expansions": {"keep": "me"}}'
@@ -119,6 +142,14 @@ def test_load_inaccessible_raises(expfile, inaccessible):
 
 def test_ensure_inaccessible_raises(expfile, inaccessible):
     with pytest.raises(core.StoreError):
+        core.ensure_expfile(expfile)
+
+
+def test_unsearchable_home_raises(unsearchable_home):
+    expfile = core.get_expfile()
+    with pytest.raises(core.StoreError, match="Permission denied"):
+        core.load_expansions(expfile)
+    with pytest.raises(core.StoreError, match="Permission denied"):
         core.ensure_expfile(expfile)
 
 
@@ -169,6 +200,12 @@ def test_cli_inaccessible_store_reported(expfile, inaccessible, command):
     assert_reported(result)
 
 
+@pytest.mark.parametrize("command", ["add", "dump"])
+def test_cli_unsearchable_home_reported(unsearchable_home, command):
+    result = runner.invoke(cli.cli, COMMANDS[command])
+    assert_reported(result, unsearchable_home / ".expanserc")
+
+
 def test_cli_reports_store_error_from_a_command(fs, expfile, monkeypatch):
     """A command's own load is covered too, not only the group's ensure_expfile check."""
     original = b'{"expansions": []}'
@@ -188,3 +225,15 @@ def test_cli_edit_aborted_in_editor_leaves_store_unchanged(fs, expfile, monkeypa
     assert result.exit_code != 0
     assert "Could not write to /home/tester/.expanserc." in result.stderr
     assert contents(fs, expfile) == original
+
+
+def test_cli_store_behind_dangling_symlink(fs, expfile):
+    """A dangling symlink loads as an empty store, and the first save creates its target."""
+    target = expfile.parent / "dotfiles" / "expanserc"
+    fs.create_dir(target.parent)
+    fs.create_symlink(expfile, target)
+    assert runner.invoke(cli.cli, ["dump"]).exit_code == 0
+    result = runner.invoke(cli.cli, COMMANDS["add"])
+    assert result.exit_code == 0
+    assert json.loads(contents(fs, target)) == {"expansions": {"new": "content"}}
+    assert expfile.is_symlink()
