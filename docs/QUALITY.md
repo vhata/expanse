@@ -24,7 +24,7 @@ Each check is a standalone script in `scripts/` or `docket/scripts/`, runnable f
 
 `ruff.toml` limits ruff to Python files and excludes `docket/`, so the formatter never touches Markdown. Hooks live in the tracked `.githooks/` directory and are wired by `bash scripts/setup.sh` through `git config core.hooksPath .githooks`. Pre-commit checks only, against the staged content of staged Python files, and never rewrites files. Measured pre-commit time: under 0.1 s warm. Bypassing a hook is for a broken toolchain only; state the bypass and the equivalent checks in the PR.
 
-Toolchain pins: `.python-version` (3.12), `requirements-dev.txt` (pytest, pytest-mock, pyfakefs, ruff), `ruff.toml` (rule set). Runtime dependencies in `setup.py` are not pinned. Bumping a pin is its own PR.
+Toolchain pins: `.python-version` (3.12), `requirements-dev.txt` (pytest, pyfakefs, ruff), `ruff.toml` (rule set). Runtime dependencies in `setup.py` are not pinned. Bumping a pin is its own PR.
 
 ## Test policy
 
