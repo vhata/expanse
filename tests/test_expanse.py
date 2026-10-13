@@ -1,5 +1,6 @@
 import json
 
+import pytest
 from click.testing import CliRunner
 
 from expanse import cli, core
@@ -16,16 +17,19 @@ def test_get_expfile_uses_home(expfile):
 
 def test_ensure_expfile_valid(fs, expfile):
     fs.create_file(expfile, contents=EMPTY_VALID_FILE)
-    assert core.ensure_expfile(expfile) is True
+    core.ensure_expfile(expfile)
+    assert expfile.read_text() == EMPTY_VALID_FILE
 
 
 def test_ensure_expfile_invalid(fs, expfile):
     fs.create_file(expfile, contents="blegh")
-    assert core.ensure_expfile(expfile) is False
+    with pytest.raises(core.StoreError):
+        core.ensure_expfile(expfile)
+    assert expfile.read_text() == "blegh"
 
 
 def test_ensure_expfile_create(expfile):
-    assert core.ensure_expfile(expfile) is True
+    core.ensure_expfile(expfile)
     assert expfile.read_text() == EMPTY_VALID_FILE
 
 
