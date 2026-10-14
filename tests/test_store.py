@@ -163,6 +163,32 @@ def test_ensure_uncreatable_raises(fs, expfile):
 
 
 @pytest.mark.parametrize(
+    "contents",
+    [b'{"expansions": {"keep": "me"}}', MALFORMED["null value"]],
+    ids=["valid", "malformed"],
+)
+def test_ensure_keeps_store_created_after_its_read(fs, expfile, monkeypatch, contents):
+    """A store written by another process between the read and the create survives."""
+    read = core._read_expansions
+    calls = []
+
+    def read_then_race(path):
+        result = read(path)
+        if not calls:
+            fs.create_file(path, contents=contents)
+        calls.append(path)
+        return result
+
+    monkeypatch.setattr(core, "_read_expansions", read_then_race)
+    if contents == MALFORMED["null value"]:
+        with pytest.raises(core.StoreError):
+            core.ensure_expfile(expfile)
+    else:
+        core.ensure_expfile(expfile)
+    assert expfile.read_bytes() == contents
+
+
+@pytest.mark.parametrize(
     "store, message",
     [
         (b'{"expansions": {"n": null}}', "'n' is not a string"),
