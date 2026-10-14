@@ -266,7 +266,7 @@ def test_cli_edit_aborted_in_editor_leaves_store_unchanged(fs, expfile, monkeypa
     monkeypatch.setattr(cli.click, "edit", lambda *args, **kwargs: None)
     result = runner.invoke(cli.cli, COMMANDS["edit"])
     assert result.exit_code != 0
-    assert "Could not write to /home/tester/.expanserc." in result.stderr
+    assert "Editor closed without saving; keep unchanged." in result.stderr
     assert contents(fs, expfile) == original
 
 

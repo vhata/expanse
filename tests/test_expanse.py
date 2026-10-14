@@ -136,8 +136,9 @@ def test_show_unknown(fs, expfile):
 def fake_editor(monkeypatch):
     """Replace click.edit: record the text it was given and return `result`.
 
-    A test must set `result`; the fake raises rather than return None, which
-    would silently store null (what click.edit returns on an aborted edit).
+    A test must set `result`; an unset result raises rather than return
+    None, which is what click.edit returns on an aborted edit, so a test of
+    that case sets `result = None` explicitly.
     """
     calls = []
     unset = object()
@@ -174,3 +175,23 @@ def test_edit_new(fs, expfile, fake_editor):
     assert response.stdout == "No such expansion: new, creating new one\n"
     assert fake_editor.calls == [""]
     assert json.loads(expfile.read_text()) == {"expansions": {"foo": "bar", "new": "fresh"}}
+
+
+def test_edit_abort_keeps_existing_snippet(fs, expfile, fake_editor):
+    fs.create_file(expfile, contents=VALID_FILE)
+    fake_editor.result = None  # the editor exited without saving
+    response = runner.invoke(cli.cli, ["edit", "-n", "foo"])
+    assert response.exit_code == 1
+    assert isinstance(response.exception, SystemExit)  # clean exit, no traceback
+    assert response.stderr == "Editor closed without saving; foo unchanged.\n"
+    assert expfile.read_text() == VALID_FILE
+
+
+def test_edit_abort_does_not_create_snippet(fs, expfile, fake_editor):
+    fs.create_file(expfile, contents=VALID_FILE)
+    fake_editor.result = None  # the editor exited without saving
+    response = runner.invoke(cli.cli, ["edit", "-n", "new"])
+    assert response.exit_code == 1
+    assert isinstance(response.exception, SystemExit)  # clean exit, no traceback
+    assert response.stderr == "Editor closed without saving; new not created.\n"
+    assert expfile.read_text() == VALID_FILE

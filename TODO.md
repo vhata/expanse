@@ -40,6 +40,12 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
   - Source: independent review of review/daemon-menu-rebuild (#6), 2026-10-13
   - Starting point: run `expanse-gui` from a worktree `.venv` with a temporary `HOME` and copy a snippet; the copy itself happens before the notification.
 
+- [CLI] `edit-trailing-newline` — **Opening a snippet in `expanse edit` and saving it unchanged leaves its content unchanged.** `click.edit` appends a newline to text that lacks one before handing it to the editor, and most editors save a final newline too, so `bar` comes back as `bar\n` and the Hammerspoon chooser then copies the newline.
+  - Source: todo/edit-abort-keeps-content, 2026-10-13
+  - Evidence: `click/_termui_impl.py` `Editor.edit` adds `"\n"` when the text does not end with one; the returned text is stored as is.
+  - Starting point: `expanse/cli.py` `edit`; decide whether to strip exactly one trailing newline the editor round-trip added, or only when the original lacked one.
+  - Related: `cli-input-fidelity`
+
 ## Needs proof of concept
 
 ### P0 Critical
@@ -58,10 +64,6 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 
 ### P1 High
 
-- [CLI] `edit-abort-keeps-content` — **Quitting the editor without saving leaves the snippet unchanged.** `click.edit` returns `None` when the editor exits without saving, and `expanse edit` stores that, replacing the content with `null`; `expanse dump` then crashes with `AttributeError`, which empties the Hammerspoon chooser.
-  - Source: independent review of task/adopt-docket, 2026-10-11
-  - Evidence: `HOME=$(mktemp -d) EDITOR=true expanse edit -n z` leaves `{"expansions": {"z": null}}`.
-  - Starting point: `expanse/cli.py`, `edit`.
 
 ### P2 Normal
 
