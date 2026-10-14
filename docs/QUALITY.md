@@ -20,7 +20,7 @@ Each check is a standalone script in `scripts/` or `docket/scripts/`, runnable f
 | `docket/scripts/ci.sh` | queue hygiene, Markdown links, PR markers against the queues | | | yes | yes | |
 | `scripts/check.sh` | fmt-check, lint, test, in order | | | yes | yes | |
 
-`scripts/check.sh` is the composite entry point: `ci.yml` runs it rather than the gates individually, so its CI columns are those of the gates it runs. `scripts/format.sh` is the write-mode formatter. There is no type checker gate yet (`add-typecheck-gate` in `TODO.md`).
+`scripts/check.sh` is the composite entry point: `ci.yml` runs it rather than the gates individually, so its CI columns are those of the gates it runs. `scripts/test.sh` passes extra arguments to pytest, so `bash scripts/test.sh tests/test_expanse.py::<name>` runs one test. `scripts/format.sh` is the write-mode formatter. There is no type checker gate yet (`add-typecheck-gate` in `TODO.md`).
 
 `ruff.toml` limits ruff to Python files and excludes `docket/`, so the formatter never touches Markdown. Hooks live in the tracked `.githooks/` directory and are wired by `bash scripts/setup.sh` through `git config core.hooksPath .githooks`. Pre-commit checks only, against the staged content of staged Python files, and never rewrites files. Measured pre-commit time: under 0.1 s warm. Bypassing a hook is for a broken toolchain only; state the bypass and the equivalent checks in the PR.
 
@@ -40,7 +40,7 @@ Read by `docket/CODE_REVIEW_GUIDE.md`, which links this section by its heading, 
 
 - Focus areas: the correctness boundaries under [What quality means here](#what-quality-means-here) and the invariants in [ARCHITECTURE.md](../ARCHITECTURE.md).
 - Baseline commands beyond `bash scripts/check.sh`: `HOME=$(mktemp -d) .venv/bin/expanse dump` and `HOME=$(mktemp -d) .venv/bin/expanse get -- missing; echo $?` (record output and exit status; both should be empty output and status 0).
-- Drift checks for an incremental review: `README.md`, `CLAUDE.md` and the CLI section of `ARCHITECTURE.md` against `expanse/cli.py`; the CLI output against `~/.hammerspoon/expanse.lua` where the reviewer can read it; this document against `.githooks/` and `.github/workflows/`; `noqa` counts.
+- Drift checks for an incremental review: `README.md` and the CLI section of `ARCHITECTURE.md` against `expanse/cli.py`; the CLI output against `~/.hammerspoon/expanse.lua` where the reviewer can read it; this document against `.githooks/` and `.github/workflows/`; `noqa` counts.
 - Source paths for `bash docket/scripts/review-due.sh --paths "expanse tests"`.
 - Expected tracked files: `*.py`, `*.md`, `*.sh`, `*.txt`, `*.toml`, `*.yml`, `*.plist`, `.githooks/*`, `.python-version`, `.gitignore`, `LICENSE.txt`, and `docket/` as vendored.
 
