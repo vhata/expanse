@@ -325,6 +325,14 @@ def test_save_preserves_mode(fs, expfile):
     assert stat.S_IMODE(os.stat(expfile).st_mode) == 0o640
 
 
+def test_save_refuses_write_protected_store(fs, expfile):
+    fs.create_file(expfile, contents=SNIPPETS_JSON)
+    os.chmod(expfile, 0o444)
+    assert core.save_expansions(expfile, {"expansions": {}}) is False
+    assert contents(fs, expfile) == SNIPPETS_JSON.encode()
+    assert os.listdir(expfile.parent) == [expfile.name]
+
+
 def test_new_store_mode_follows_umask(tmp_path, monkeypatch):
     # A real temporary $HOME: pyfakefs's os.open ignores the umask.
     monkeypatch.setenv("HOME", str(tmp_path))

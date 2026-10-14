@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import contextlib
+import errno
 import json
 import os
 import secrets
@@ -93,6 +94,10 @@ def _replace_with_json(expfile: Path, data: dict) -> None:
         mode = stat.S_IMODE(target.stat().st_mode)
     except FileNotFoundError:
         mode = None
+    # The rename needs only a writable directory; honour a write-protected
+    # store as the in-place write it replaces did.
+    if mode is not None and not os.access(target, os.W_OK):
+        raise PermissionError(errno.EACCES, os.strerror(errno.EACCES), str(target))
 
     fd, tmp = _create_temp_beside(target)
     try:
