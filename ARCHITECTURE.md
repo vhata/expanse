@@ -19,6 +19,7 @@ What the structure is now, the boundaries parallel work must respect, and the in
 ## Invariants
 
 - All file access to the snippet store goes through `expanse/core.py`.
+- `save_expansions` replaces the store atomically: the JSON goes to a temporary file in the store's directory, is fsynced, and is renamed over the store, so an interrupted save leaves the previous contents. A symlinked store has its target replaced and the link kept, and the file's permission bits are preserved. Each save gives the store a new inode, so hard links to it are broken and its owner, extended attributes and ACLs are not carried over. Saving needs a writable directory: a writable store in a read-only directory cannot be saved, and `save_expansions` returns False. `ensure_expfile` creates a missing store with an exclusive create instead, so it never replaces a store another process wrote after its read.
 - The location of the store comes from `$HOME`, so tests can point it at a temporary directory; tests never touch the real `~/.expanserc`.
 - `expanse/core.py` and `expanse/cli.py` import nothing macOS-specific; only `expanse/daemon.py` imports rumps and pyperclip.
 

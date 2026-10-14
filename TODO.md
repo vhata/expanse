@@ -65,13 +65,10 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 
 ### P2 Normal
 
-- [CORE] `atomic-save` — **Saving snippets cannot truncate `~/.expanserc` if the process dies mid-write.** `save_expansions` opens the store with mode `w` and writes in place, so an interrupted write leaves an empty or partial file.
-  - Source: task/adopt-docket inspection, 2026-10-11
-  - Starting point: write to a temporary file in the same directory and `os.replace` it.
 - [GUI] `daemon-reloads-store` — **The daemon never overwrites snippets added elsewhere while it runs.** It loads the store once at startup and saves its in-memory copy on every change, so anything the CLI or Hammerspoon added since startup is lost on the next daemon save.
   - Source: independent review of task/adopt-docket, 2026-10-11
   - Starting point: `expanse/daemon.py`; reload before each mutation. Found by reading the code, not reproduced.
-  - Related: `daemon-guards-malformed-store`, `atomic-save`
+  - Related: `daemon-guards-malformed-store`
 
 ### P3 Low
 
