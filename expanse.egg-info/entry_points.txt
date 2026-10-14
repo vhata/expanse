@@ -1,3 +1,0 @@
-[console_scripts]
-expanse = expanse.cli:main
-expanse-gui = expanse.daemon:main

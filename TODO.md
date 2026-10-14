@@ -25,7 +25,7 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
   - Blocked by: the user's decision on how the daemon is run and installed (fix these files or remove them). Triage, 2026-10-13
 - [TOOLING] `adopt-pyproject-lock` — **Packaging moves to `pyproject.toml` with a lockfile, and `scripts/setup.sh` installs from it exactly.** Runtime dependencies are unpinned today and dependencies are split across `setup.py`, `pip-requirements.txt` and `requirements-dev.txt`.
   - Source: task/adopt-docket inspection, 2026-10-11
-  - Absorbs `fix-setup-metadata` (triage, 2026-10-13), since moving to `pyproject.toml` replaces `setup.py`: declare the real dependencies (drop `pynput`, which no code imports; add `rumps` and `pyperclip`, which the daemon needs and which are only in `pip-requirements.txt`), the real author, email and URL in place of placeholders, exclude `tests` from the installed packages (see `expanse.egg-info/top_level.txt`), and replace `python_requires=">=3.6"` and the "OS Independent" classifier with 3.12-only and macOS. Source: task/adopt-docket inspection, 2026-10-11, and review/2026-10-12-1703-full.md, 2026-10-12
+  - Absorbs `fix-setup-metadata` (triage, 2026-10-13), since moving to `pyproject.toml` replaces `setup.py`: declare the real dependencies (drop `pynput`, which no code imports; add `rumps` and `pyperclip`, which the daemon needs and which are only in `pip-requirements.txt`), the real author, email and URL in place of placeholders, exclude `tests` from the installed packages (see `expanse.egg-info/top_level.txt`, which the editable install generates), and replace `python_requires=">=3.6"` and the "OS Independent" classifier with 3.12-only and macOS. Source: task/adopt-docket inspection, 2026-10-11, and review/2026-10-12-1703-full.md, 2026-10-12
   - Blocked by: the user's choice of packaging and lock tooling. Triage, 2026-10-13
 - [TOOLING] `add-typecheck-gate` — **A type checker runs as `scripts/typecheck.sh` in `scripts/check.sh`, the pre-push hook and CI.** The code is partly annotated and nothing checks the annotations.
   - Source: task/adopt-docket inspection, 2026-10-11
@@ -75,8 +75,6 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 
 ### P3 Low
 
-- [TOOLING] `untrack-egg-info` — **`expanse.egg-info/` is ignored rather than tracked.** It is build output that `pip install -e .` regenerates in place.
-  - Source: task/adopt-docket inspection, 2026-10-11
 - [DOCS] `refresh-readme` — **`README.md` describes the CLI and the Hammerspoon integration as they work today.** It presents the daemon as the main interface, names an `expanse-daemon` command that does not exist and gives the hotkey as Ctrl+Alt+E (Hammerspoon uses Cmd+Alt+E). Its `expanse show test` example prompts for a name, because `show` takes `-n`.
   - Source: task/adopt-docket inspection, 2026-10-11
   - Also: it credits the daemon with a global hotkey and custom keyboard shortcuts, which `expanse/daemon.py` does not have. Source: review/2026-10-12-1703-full.md, 2026-10-12
