@@ -13,8 +13,8 @@ What the structure is now, the boundaries parallel work must respect, and the in
 
 ## Shared interfaces
 
-- The snippet file format, `{"expansions": {"<name>": "<content>"}}` at `$HOME/.expanserc`. The CLI and the daemon both read and write it through `expanse/core.py`.
-- The CLI surface used by the Hammerspoon integration: `expanse dump` prints each snippet as two lines, the name and then the content with newlines replaced by `↵`; and `expanse get -- <name>` prints the content followed by a newline, or prints nothing and exits 0 for an unknown name. Changing either output or the exit status breaks `~/.hammerspoon/expanse.lua`, which is not in this repository; such a change needs the user to update that file in step.
+- The snippet file format, `{"expansions": {"<name>": "<content>"}}` at `$HOME/.expanserc`. The CLI and the daemon both read and write it through `expanse/core.py`. Every snippet's content is a string. `load_expansions` and `ensure_expfile` raise `StoreError` for a file that cannot be read or has any other shape, and a missing file loads as an empty store. `save_expansions` refuses to write any other shape and returns `False`, leaving the file as it was.
+- The CLI surface used by the Hammerspoon integration: `expanse dump` prints each snippet as two lines, the name and then the content with newlines replaced by `↵`; and `expanse get -- <name>` prints the content followed by a newline, or prints nothing and exits 0 for an unknown name. Any command run against an unreadable or malformed store prints `Could not access expansion file <path>: <reason>` to stderr, prints nothing to stdout and exits non-zero. Changing either output or the exit status breaks `~/.hammerspoon/expanse.lua`, which is not in this repository; such a change needs the user to update that file in step.
 
 ## Invariants
 

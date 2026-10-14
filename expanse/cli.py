@@ -4,18 +4,27 @@ import sys
 
 import click
 
-from .core import ensure_expfile, get_expfile, load_expansions, save_expansions
+from .core import StoreError, ensure_expfile, get_expfile, load_expansions, save_expansions
 
 
-@click.group()
+class StoreGroup(click.Group):
+    """Report a StoreError from the group or any command, and abort."""
+
+    def invoke(self, ctx):
+        try:
+            return super().invoke(ctx)
+        except StoreError as e:
+            click.echo(f"Could not access expansion file {get_expfile()}: {e}", err=True)
+            ctx.abort()
+
+
+@click.group(cls=StoreGroup)
 @click.pass_context
 def cli(ctx):
     ctx.ensure_object(dict)
     expfile = get_expfile()
     ctx.obj["EXPANSION_FILE"] = expfile
-    if not ensure_expfile(expfile):
-        click.echo(f"Could not access expansion file {expfile}", err=True)
-        ctx.abort()
+    ensure_expfile(expfile)
 
 
 @cli.command()

@@ -19,9 +19,6 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
   - Related: `fix-daemon-install`
   - Also: `run.sh` is tracked as mode 100644, so `./run.sh` fails with permission denied before reaching the import error. Source: review/2026-10-12-1703-full.md, 2026-10-12
   - Blocked by: the user's decision on how the daemon is run and installed, to be revisited together with `fix-daemon-install`. Triage, 2026-10-13
-- [GUI] `daemon-guards-malformed-store` — **The daemon refuses to save over a store it could not parse.** `load_expansions` returns an empty store on a JSON error; the CLI checks `ensure_expfile` first, but `expanse/daemon.py` loads and saves directly, so one add from the menu would replace a malformed file with a single snippet.
-  - Source: task/adopt-docket inspection, 2026-10-11
-  - Depends on: `core-validates-store`; the daemon should handle the store error that entry introduces rather than add a check of its own. Triage, 2026-10-13
 - [GUI] `fix-daemon-install` — **`install.sh` and `com.expanse.daemon.plist` install the daemon that actually exists, or are removed.** Both reference `expanse_daemon.py`, which is not in the repository; the daemon is now the `expanse-gui` entry point.
   - Source: task/adopt-docket inspection, 2026-10-11
   - Also: `install.sh` installs with `pip3` into the global interpreter, and the plist's `KeepAlive` would make launchd retry the missing path indefinitely. Source: review/2026-10-12-1703-full.md, 2026-10-12
@@ -71,9 +68,6 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 - [CORE] `atomic-save` — **Saving snippets cannot truncate `~/.expanserc` if the process dies mid-write.** `save_expansions` opens the store with mode `w` and writes in place, so an interrupted write leaves an empty or partial file.
   - Source: task/adopt-docket inspection, 2026-10-11
   - Starting point: write to a temporary file in the same directory and `os.replace` it.
-- [CLI] `test-malformed-store-abort` — **A CLI command against a malformed store exits non-zero and leaves the file unchanged.** The group's `ensure_expfile` check in `expanse/cli.py` aborts on a malformed store, which is how the CLI keeps the "a malformed file is reported rather than overwritten" invariant, but no test covers it: replacing the check with `if False:` leaves the suite green.
-  - Source: independent review of todo/fix-broken-tests (#2), 2026-10-12
-  - Starting point: a test in `tests/test_expanse.py` using the `expfile` fixture with invalid JSON, invoking `add`, and asserting a non-zero exit and the original contents.
 - [GUI] `daemon-reloads-store` — **The daemon never overwrites snippets added elsewhere while it runs.** It loads the store once at startup and saves its in-memory copy on every change, so anything the CLI or Hammerspoon added since startup is lost on the next daemon save.
   - Source: independent review of task/adopt-docket, 2026-10-11
   - Starting point: `expanse/daemon.py`; reload before each mutation. Found by reading the code, not reproduced.
@@ -94,3 +88,7 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
   - Also: it says to symlink `~/bin/expanse`, while on the user's machine that is a wrapper script around `~/.virtualenvs/expanse` (as `ARCHITECTURE.md` says). Source: review/2026-10-12-1703-full.md, 2026-10-12
 
 ### Unprioritized
+
+- [GUI] `daemon-guards-malformed-store` — **The daemon reports a malformed store at startup instead of dying with a traceback.** `load_expansions` raises `StoreError` for a store it cannot read or validate, so the daemon no longer starts with an empty store and saves over the file, but `ExpanseDaemon.__init__` in `expanse/daemon.py` does not catch the error, so `expanse-gui` exits with a `StoreError` traceback.
+  - Source: task/adopt-docket inspection, 2026-10-11
+  - Starting point: catch `StoreError` around the startup load in `expanse/daemon.py` and report it to the user rather than raising.
