@@ -1,71 +1,52 @@
 # Expanse
 
-A text snippet manager with global keyboard shortcuts for macOS.
+A text snippet manager for macOS. Snippets are named pieces of text kept in a JSON file at `~/.expanserc`; the `expanse` command manages them, and a Hammerspoon hotkey picks one and copies it to the clipboard.
 
-## Features
-
-- Store and manage text snippets
-- Two interfaces:
-  - Simple command-line interface (CLI)
-  - GUI with global keyboard shortcuts (Ctrl+Alt+E by default)
-- Snippets are stored in `~/.expanserc`
-
-## Installation
+## Command line
 
 ```bash
-# Install the package
-pip install .
-
-# Start the daemon
-expanse-daemon
-```
-
-The daemon will run in the background and can be triggered with Ctrl+Alt+E.
-
-## Usage
-
-### GUI Mode (with keyboard shortcuts)
-
-Run `expanse-gui` to start the GUI where you can:
-- Add new snippets
-- Edit existing snippets
-- Delete snippets
-- Set custom keyboard shortcuts
-- Access snippets via global keyboard shortcut (Ctrl+Alt+E by default)
-
-### Command Line Mode
-
-The `expanse` command provides the following subcommands:
-
-```bash
-# Add a new snippet
+# Add a snippet; without -e, the content is read from stdin until Ctrl-D
 expanse add -n test -e "Some long text you want to expand to"
 
-# Get a snippet's content
-expanse get test
-
-# List all snippets
-expanse list
-
-# Edit a snippet
+# Edit a snippet in $EDITOR (creates it if it does not exist)
 expanse edit -n test
 
-# Show a snippet
-expanse show test
+# Print a snippet's name and content
+expanse show -n test
 
-# Delete a snippet
-expanse delete -n test
+# Print the content of one or more snippets
+expanse get test
 
-# Dump all snippets
+# List snippet names
+expanse list
+
+# Print every snippet as two lines: the name, then the content with
+# newlines shown as ↵
 expanse dump
+
+# Delete a snippet (asks for confirmation unless --yes is given)
+expanse delete -n test
 ```
+
+`add`, `edit`, `show` and `delete` prompt for the name when `-n` is left out. `add` asks before overwriting an existing snippet. `get` prints nothing for a name that does not exist; use `expanse get -- <name>` for a name that starts with `-`.
+
+## Hammerspoon
+
+Pressing Cmd+Alt+E opens a Hammerspoon chooser listing every snippet by name, with a preview of its content underneath. Typing filters on both name and content, and choosing a snippet copies its content to the clipboard.
+
+The Hammerspoon config is not part of this repository. It lives at `~/.hammerspoon/expanse.lua`, is loaded with `require("expanse")` from `~/.hammerspoon/init.lua`, and runs `~/bin/expanse dump` and `~/bin/expanse get`, so `~/bin/expanse` has to run the CLI. See [ARCHITECTURE.md](ARCHITECTURE.md) for how that is set up and which CLI output the config depends on.
+
+## Menu-bar app
+
+`expanse-gui` starts an optional menu-bar app (using rumps) that lists the snippets and copies one to the clipboard when clicked, with menu items to add, edit and delete snippets. It needs `rumps` and `pyperclip` installed in the same environment.
 
 ## Development
 
 ```bash
-# Install in development mode
-pip install -e .
-
-# Run tests
-pytest
+bash scripts/setup.sh   # creates .venv/ from Python 3.12 and installs the package editable
+bash scripts/check.sh   # format check, lint and tests
 ```
+
+The gates, test policy and CI are described in [docs/QUALITY.md](docs/QUALITY.md), and the code layout and invariants in [ARCHITECTURE.md](ARCHITECTURE.md). Work is tracked in [TODO.md](TODO.md); see [AGENTS.md](AGENTS.md) for the workflow.
+
+Expanse is developed with help from Claude Code.

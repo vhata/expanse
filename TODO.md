@@ -77,10 +77,6 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 
 ### P3 Low
 
-- [DOCS] `refresh-readme` — **`README.md` describes the CLI and the Hammerspoon integration as they work today.** It presents the daemon as the main interface, names an `expanse-daemon` command that does not exist and gives the hotkey as Ctrl+Alt+E (Hammerspoon uses Cmd+Alt+E). Its `expanse show test` example prompts for a name, because `show` takes `-n`.
-  - Source: task/adopt-docket inspection, 2026-10-11
-  - Also: it credits the daemon with a global hotkey and custom keyboard shortcuts, which `expanse/daemon.py` does not have. Source: review/2026-10-12-1703-full.md, 2026-10-12
-
 ### Unprioritized
 
 - [GUI] `daemon-guards-malformed-store` — **The daemon reports a malformed store at startup instead of dying with a traceback.** `load_expansions` raises `StoreError` for a store it cannot read or validate, so the daemon no longer starts with an empty store and saves over the file, but `ExpanseDaemon.__init__` in `expanse/daemon.py` does not catch the error, so `expanse-gui` exits with a `StoreError` traceback.
