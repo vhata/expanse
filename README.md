@@ -32,7 +32,7 @@ expanse delete -n test
 
 ## Hammerspoon
 
-Pressing Cmd+Alt+E opens a Hammerspoon chooser listing every snippet by name, with the start and end of its content underneath. Typing filters on both name and content, and choosing a snippet copies its content to the clipboard.
+Pressing Cmd+Alt+E opens a Hammerspoon chooser listing every snippet by name, with a preview of its content underneath. Typing filters on both name and content, and choosing a snippet copies its content to the clipboard.
 
 The Hammerspoon config is not part of this repository. It lives at `~/.hammerspoon/expanse.lua`, is loaded with `require("expanse")` from `~/.hammerspoon/init.lua`, and runs `~/bin/expanse dump` and `~/bin/expanse get`, so `~/bin/expanse` has to run the CLI. See [ARCHITECTURE.md](ARCHITECTURE.md) for how that is set up and which CLI output the config depends on.
 
