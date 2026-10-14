@@ -75,9 +75,6 @@ Ordinary follow-ups and bugs found during other work live here. Whole-codebase r
 
 ### P3 Low
 
-- [TOOLING] `drop-pytest-mock` — **`requirements-dev.txt` pins only what the suite uses.** The tests stopped using `pytest-mock` when they moved to pyfakefs and a fake `$HOME`, but it is still pinned and listed in `docs/QUALITY.md`.
-  - Source: independent review of todo/fix-broken-tests (#2), 2026-10-12
-  - Starting point: remove the pin from `requirements-dev.txt` and the mention in `docs/QUALITY.md`; a pin change is its own PR.
 - [TOOLING] `untrack-egg-info` — **`expanse.egg-info/` is ignored rather than tracked.** It is build output that `pip install -e .` regenerates in place.
   - Source: task/adopt-docket inspection, 2026-10-11
 - [DOCS] `refresh-readme` — **`README.md` describes the CLI and the Hammerspoon integration as they work today.** It presents the daemon as the main interface, names an `expanse-daemon` command that does not exist and gives the hotkey as Ctrl+Alt+E (Hammerspoon uses Cmd+Alt+E). Its `expanse show test` example prompts for a name, because `show` takes `-n`.
