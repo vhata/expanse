@@ -18,7 +18,6 @@ Only work promoted from whole-codebase reviews belongs here. Every entry is read
 - [CORE] `private-store-permissions` — **`~/.expanserc` is created and rewritten with mode 0600.** It is created 0644 under the default umask, and macOS home directories are group-readable by `staff`.
   - Source: review/2026-10-12-1703-full.md, 2026-10-12
   - Findings: `store-world-readable`
-  - Starting point: `expanse/core.py` `save_expansions` and `ensure_expfile`; take it with `atomic-save`, which rewrites the same function.
-  - Related: `atomic-save`
+  - Starting point: `expanse/core.py`: `_replace_with_json`, through which `save_expansions` writes, keeps an existing file's mode and gives a new one `0o666 & ~umask`; `ensure_expfile` creates a missing store with `open("x")`. Both need the 0600 mode.
 
 ## Unprioritized

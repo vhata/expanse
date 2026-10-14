@@ -1,6 +1,7 @@
 """Validation of the snippet store: malformed or unreadable stores are reported, never overwritten."""
 
 import json
+import os
 import stat
 
 import pytest
@@ -280,3 +281,83 @@ def test_cli_store_behind_dangling_symlink(fs, expfile):
     assert result.exit_code == 0
     assert json.loads(contents(fs, target)) == {"expansions": {"new": "content"}}
     assert expfile.is_symlink()
+
+
+# Atomic save
+
+SNIPPETS = {"expansions": {"keep": "me"}}
+SNIPPETS_JSON = json.dumps(SNIPPETS)
+
+
+def test_save_replaces_store_and_leaves_no_temp_file(fs, expfile):
+    fs.create_file(expfile, contents='{"expansions": {}}')
+    assert core.save_expansions(expfile, SNIPPETS) is True
+    assert json.loads(expfile.read_text()) == SNIPPETS
+    assert os.listdir(expfile.parent) == [expfile.name]
+
+
+def test_save_interrupted_write_keeps_store(fs, expfile, monkeypatch):
+    fs.create_file(expfile, contents=SNIPPETS_JSON)
+
+    def partial_dump(obj, fp):
+        fp.write('{"expansions": {"ke')
+        raise OSError("disk full")
+
+    monkeypatch.setattr(core.json, "dump", partial_dump)
+    assert core.save_expansions(expfile, {"expansions": {}}) is False
+    assert expfile.read_text() == SNIPPETS_JSON
+    assert os.listdir(expfile.parent) == [expfile.name]
+
+
+def test_replace_failure_other_than_oserror_keeps_store(fs, expfile):
+    """Cleanup runs for any exception, not only OSError."""
+    fs.create_file(expfile, contents=SNIPPETS_JSON)
+    with pytest.raises(TypeError):
+        core._replace_with_json(expfile, {"expansions": {"z": object()}})
+    assert expfile.read_text() == SNIPPETS_JSON
+    assert os.listdir(expfile.parent) == [expfile.name]
+
+
+def test_save_preserves_mode(fs, expfile):
+    fs.create_file(expfile, contents=SNIPPETS_JSON)
+    os.chmod(expfile, 0o640)
+    assert core.save_expansions(expfile, {"expansions": {}}) is True
+    assert stat.S_IMODE(os.stat(expfile).st_mode) == 0o640
+
+
+def test_save_refuses_write_protected_store(fs, expfile):
+    fs.create_file(expfile, contents=SNIPPETS_JSON)
+    os.chmod(expfile, 0o444)
+    assert core.save_expansions(expfile, {"expansions": {}}) is False
+    assert contents(fs, expfile) == SNIPPETS_JSON.encode()
+    assert os.listdir(expfile.parent) == [expfile.name]
+
+
+def test_new_store_mode_follows_umask(tmp_path, monkeypatch):
+    # A real temporary $HOME: pyfakefs's os.open ignores the umask.
+    monkeypatch.setenv("HOME", str(tmp_path))
+    expfile = core.get_expfile()
+    old_umask = os.umask(0o027)
+    try:
+        assert core.save_expansions(expfile, SNIPPETS) is True
+    finally:
+        os.umask(old_umask)
+    assert stat.S_IMODE(os.stat(expfile).st_mode) == 0o640
+
+
+def test_save_through_symlink_replaces_target(fs, expfile):
+    target = expfile.parent / "dotfiles" / "expanserc"
+    fs.create_file(target, contents='{"expansions": {}}')
+    os.symlink(target, expfile)
+    assert core.save_expansions(expfile, SNIPPETS) is True
+    assert expfile.is_symlink()
+    assert os.readlink(expfile) == str(target)
+    assert json.loads(target.read_text()) == SNIPPETS
+    assert os.listdir(target.parent) == [target.name]
+
+
+def test_save_symlink_loop_fails(fs, expfile):
+    os.symlink(expfile, expfile)
+    assert core.save_expansions(expfile, {"expansions": {}}) is False
+    assert expfile.is_symlink()
+    assert os.listdir(expfile.parent) == [expfile.name]
