@@ -4,6 +4,7 @@ Historical codebase reviews are immutable snapshots; the newest snapshot is the 
 
 | Review (UTC) | Type | Reviewed commit | Open findings at close |
 | --- | --- | --- | --- |
+| [2026-10-27-1619](2026-10-27-1619-full.md) | Full | `77da841` | 17 |
 | 2026-10-12 | Full | `87b0e01` | 23 |
 
 <!-- This section must stay below the index table: review-due.sh reads the first table row with a backticked commit as the latest review. -->
